@@ -4,8 +4,8 @@
 CPP      = g++.exe
 CC       = gcc.exe
 WINDRES  = windres.exe
-OBJ      = main.o
-LINKOBJ  = main.o
+OBJ      = GalacticDefense.o spritehandler.o sprite.o
+LINKOBJ  = GalacticDefense.o spritehandler.o sprite.o
 LIBS     = -L"D:/Useful Programs/Dev-Cpp/MinGW64/x86_64-w64-mingw32/lib32" -static-libgcc "../../Useful Programs/Dev-Cpp/MinGW64/lib/liballegro-4.4.2-md.a" -m32
 INCS     = -I"D:/Useful Programs/Dev-Cpp/MinGW64/include" -I"D:/Useful Programs/Dev-Cpp/MinGW64/x86_64-w64-mingw32/include" -I"D:/Useful Programs/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include"
 CXXINCS  = -I"D:/Useful Programs/Dev-Cpp/MinGW64/include" -I"D:/Useful Programs/Dev-Cpp/MinGW64/x86_64-w64-mingw32/include" -I"D:/Useful Programs/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include" -I"D:/Useful Programs/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include/c++"
@@ -24,5 +24,11 @@ clean: clean-custom
 $(BIN): $(OBJ)
 	$(CPP) $(LINKOBJ) -o $(BIN) $(LIBS)
 
-main.o: main.cpp
-	$(CPP) -c main.cpp -o main.o $(CXXFLAGS)
+GalacticDefense.o: GalacticDefense.cpp
+	$(CPP) -c GalacticDefense.cpp -o GalacticDefense.o $(CXXFLAGS)
+
+spritehandler.o: spritehandler.cpp
+	$(CPP) -c spritehandler.cpp -o spritehandler.o $(CXXFLAGS)
+
+sprite.o: sprite.cpp
+	$(CPP) -c sprite.cpp -o sprite.o $(CXXFLAGS)
