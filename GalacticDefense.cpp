@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "allegro.h"
+#include "math.h"
 #include "sprite.h"
 #include "GalacticDefense.h"
 #include "spritehandler.h"
@@ -59,6 +60,185 @@ void draw_startscreen() {
     textout_ex(screen, font, "4. Press Esc to exit the game!", WIDTH/8, HEIGHT/2 + 120, WHITE, BLACK);
 }
 
+//calculate X movement value based on direction angle
+double calcAngleMoveX(int angle) {
+    return (double) cos(angle * PI / 180);
+}
+
+//calculate Y movement value based on direction angle
+double calcAngleMoveY(int angle) {
+    return (double) sin(angle * PI / 180);
+}
+
+void erasesprite(BITMAP *dest, sprite *spr)
+{
+    //erase the sprite using BLACK color fill
+    rectfill(dest, (int)spr->x, (int)spr->y, (int)spr->x + spr->width, 
+        (int)spr->y + spr->height, BLACK);
+}
+
+void warpsprite(sprite *spr)
+{
+    //simple screen warping behavior
+    int w = spr->width;
+    int h = spr->height;
+    
+    if (spr->x < 0-w)
+    {
+        spr->x = SCREEN_W;
+    }
+
+    else if (spr->x > SCREEN_W)
+    {
+        spr->x = 0-w;
+    }
+
+    if (spr->y < 0-h)
+    {
+        spr->y = SCREEN_H;
+    }
+
+    else if (spr->y > SCREEN_H)
+    {
+        spr->y = 0-h;
+    }
+
+}
+
+void forward()
+{
+    //shift 0-degree orientation from right-face to up-face
+	spaceship->moveAngle = spaceship->faceAngle - 90;
+    //convert negative angle to wraparound
+	if (spaceship->moveAngle < 0) spaceship->moveAngle = 359 + spaceship->moveAngle;
+
+    //adjust velocity based on angle
+	spaceship->velx += calcAngleMoveX(spaceship->moveAngle) * ACCELERATION;
+	spaceship->vely += calcAngleMoveY(spaceship->moveAngle) * ACCELERATION;
+	
+	//keep velocity down to a reasonable speed
+	if (spaceship->velx > 4.0) spaceship->velx = 4.0;
+	if (spaceship->velx < -4.0) spaceship->velx = -4.0;
+	if (spaceship->vely > 4.0) spaceship->vely = 4.0;
+	if (spaceship->vely < -4.0) spaceship->vely = -4.0;
+}
+
+void backward()
+{
+    //shift 0-degree orientation from right-face to up-face
+	spaceship->moveAngle = spaceship->faceAngle - 90;
+    //convert negative angle to wraparound
+	if (spaceship->moveAngle < 0) spaceship->moveAngle = 359 + spaceship->moveAngle;
+
+    //adjust velocity based on angle
+	spaceship->velx -= calcAngleMoveX(spaceship->moveAngle) * ACCELERATION;
+	spaceship->vely -= calcAngleMoveY(spaceship->moveAngle) * ACCELERATION;
+	
+	//keep velocity down to a reasonable speed
+	if (spaceship->velx > 4.0) spaceship->velx = 4.0;
+	if (spaceship->velx < -4.0) spaceship->velx = -4.0;
+	if (spaceship->vely > 4.0) spaceship->vely = 4.0;
+	if (spaceship->vely < -4.0) spaceship->vely = -4.0;
+}
+
+void turnleft()
+{
+    spaceship->faceAngle -= STEP;
+	if (spaceship->faceAngle < 0) {
+		spaceship->faceAngle = 359;
+	}	
+}
+
+void turnright()
+{
+    spaceship->faceAngle += STEP;
+	if (spaceship->faceAngle > 359) {
+		spaceship->faceAngle = 0;
+	}
+}
+
+void update()
+{
+	//Clear background
+	blit(background, buffer, 0, 0, 0, 0, WIDTH, HEIGHT);
+    
+    //rotate sprite with adjust for Allegro's 16.16 fixed trig
+    //(256 / 360 = 0.7), then divide by 2 radians
+	rotate_sprite(buffer, spaceship->image, (int)spaceship->x, (int)spaceship->y, 
+        itofix((int)(spaceship->faceAngle / 0.7f / 2.0f)));
+        
+    //move the spaceship
+	spaceship->updatePosition();
+    warpsprite(spaceship);
+}
+
+void getinput()
+{
+    //hit ESC to quit
+    if (key[KEY_ESC])   gameover = 1;
+    
+    //ARROW KEYS AND SPACE BAR CONTROL
+    if (key[KEY_UP]) {  
+		forward();
+	}
+	
+    if (key[KEY_DOWN]) {
+		backward();
+	}
+	
+    if (key[KEY_LEFT]) {
+		turnleft();
+	}
+	
+    if (key[KEY_RIGHT]) {
+		turnright();
+	}
+    //if (key[KEY_SPACE]) fireweapon(0);
+
+    //short delay after keypress        
+    rest(20);
+}
+
+void setupscreen()
+{
+    int ret;
+
+    //set video mode    
+    set_color_depth(desktop_color_depth());
+    ret = set_gfx_mode(MODE, WIDTH, HEIGHT, 0, 0);
+    if (ret != 0) {
+        allegro_message(allegro_error);
+        return;
+    }
+   
+   	draw_startscreen();
+}
+
+void setupgame()
+{
+	//Create a back buffer
+	buffer = create_bitmap(WIDTH,HEIGHT);
+	
+	//load background buffer
+	background = load_bitmap(BACKGROUND_SPRITE, NULL);
+	
+	//Create a spaceship sprite
+	spaceship = new sprite();
+	if (!spaceship->load(SPACESHIP_SPRITE) || !background) {
+		allegro_message("Error loading sprites");
+		return;
+	}
+	
+    spaceship->width = 40;
+    spaceship->height = 50;
+    spaceship->xdelay = 0;
+    spaceship->ydelay = 0;
+    spaceship->x = SCREEN_W / 2 - spaceship->width/2;
+    spaceship->y = SCREEN_H / 2 - spaceship->height/2;
+	spaceship->moveAngle = 0;
+	spaceship->faceAngle = 0;
+}
+
 int main(void)
 {
 	//initialize Allegro
@@ -73,18 +253,8 @@ int main(void)
     //initialize random seed
     srand(time(NULL));
     
-    // Set color depth
-    set_color_depth(desktop_color_depth());
+    setupscreen();
     
-    //Initialize Graphics
-    int ret;
-    ret = set_gfx_mode(MODE, WIDTH, HEIGHT, 0, 0);
-    if (ret != 0) {
-        allegro_message(allegro_error);
-        return 0;
-    }
-    
-    draw_startscreen();
     
     while(1) {
     	if (key[KEY_ENTER]) {
@@ -96,30 +266,26 @@ int main(void)
     	}
 	};
 	
+	setupgame();
+	
 	// Clear Screen
     rectfill(screen, 0, 0, WIDTH, HEIGHT, BLACK);
     
-    BITMAP* image = load_bitmap(SPACESHIP_SPRITE, NULL);
-    BITMAP* image2 = load_bitmap(BACKGROUND_SPRITE, NULL);
-    if (!image || !image2) {
-		allegro_message("Error loading background");
-		return 1;
-	}
-    
-    blit(image2, screen, 0, 0, 0, 0, WIDTH, HEIGHT);
-    draw_sprite(screen, image, WIDTH/2, HEIGHT/2);
-    
-    rest(1000);
-    
-    while(1) {
-    	if (key[KEY_ENTER]) {
-    		break;
-    	}
-    	else if (key[KEY_ESC]) {
-    		allegro_exit();
-    		exit(0);
-    	}
-	};
+    while(!gameover) {
+    	
+    	//refresh the screen
+	    acquire_screen();
+		blit(buffer, screen, 0, 0, 0, 0, WIDTH, HEIGHT);
+	    release_screen();
+	    
+	    //check for keypresses
+        if (keypressed()) {
+            getinput();
+		}
+		
+		update();
+	    rest(10);
+    }
     
     //end program
     allegro_exit();
