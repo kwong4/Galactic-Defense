@@ -11,6 +11,7 @@ public:
 	int objecttype;
 	int direction;
     double x,y;
+    double pointer_x, pointer_y;
     int width,height;
     double speed;
     double velx, vely;

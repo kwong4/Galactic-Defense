@@ -70,13 +70,6 @@ double calcAngleMoveY(int angle) {
     return (double) sin(angle * PI / 180);
 }
 
-void erasesprite(BITMAP *dest, sprite *spr)
-{
-    //erase the sprite using BLACK color fill
-    rectfill(dest, (int)spr->x, (int)spr->y, (int)spr->x + spr->width, 
-        (int)spr->y + spr->height, BLACK);
-}
-
 void warpsprite(sprite *spr)
 {
     //simple screen warping behavior
@@ -105,7 +98,7 @@ void warpsprite(sprite *spr)
 
 }
 
-void forward()
+void thrusters(int dir)
 {
     //shift 0-degree orientation from right-face to up-face
 	spaceship->moveAngle = spaceship->faceAngle - 90;
@@ -113,32 +106,31 @@ void forward()
 	if (spaceship->moveAngle < 0) spaceship->moveAngle = 359 + spaceship->moveAngle;
 
     //adjust velocity based on angle
-	spaceship->velx += calcAngleMoveX(spaceship->moveAngle) * ACCELERATION;
-	spaceship->vely += calcAngleMoveY(spaceship->moveAngle) * ACCELERATION;
+    if (dir == 1) {
+    	spaceship->velx += calcAngleMoveX(spaceship->moveAngle) * ACCELERATION;
+		spaceship->vely += calcAngleMoveY(spaceship->moveAngle) * ACCELERATION;
+    }
+    else {
+    	spaceship->velx -= calcAngleMoveX(spaceship->moveAngle) * ACCELERATION;
+		spaceship->vely -= calcAngleMoveY(spaceship->moveAngle) * ACCELERATION;
+    }
 	
 	//keep velocity down to a reasonable speed
-	if (spaceship->velx > 4.0) spaceship->velx = 4.0;
-	if (spaceship->velx < -4.0) spaceship->velx = -4.0;
-	if (spaceship->vely > 4.0) spaceship->vely = 4.0;
-	if (spaceship->vely < -4.0) spaceship->vely = -4.0;
-}
-
-void backward()
-{
-    //shift 0-degree orientation from right-face to up-face
-	spaceship->moveAngle = spaceship->faceAngle - 90;
-    //convert negative angle to wraparound
-	if (spaceship->moveAngle < 0) spaceship->moveAngle = 359 + spaceship->moveAngle;
-
-    //adjust velocity based on angle
-	spaceship->velx -= calcAngleMoveX(spaceship->moveAngle) * ACCELERATION;
-	spaceship->vely -= calcAngleMoveY(spaceship->moveAngle) * ACCELERATION;
+	if (spaceship->velx > 4.0) {
+		spaceship->velx = 4.0;
+	}
 	
-	//keep velocity down to a reasonable speed
-	if (spaceship->velx > 4.0) spaceship->velx = 4.0;
-	if (spaceship->velx < -4.0) spaceship->velx = -4.0;
-	if (spaceship->vely > 4.0) spaceship->vely = 4.0;
-	if (spaceship->vely < -4.0) spaceship->vely = -4.0;
+	if (spaceship->velx < -4.0) {
+		spaceship->velx = -4.0;
+	}
+	
+	if (spaceship->vely > 4.0) {
+		spaceship->vely = 4.0;
+	}
+	
+	if (spaceship->vely < -4.0) {
+		spaceship->vely = -4.0;
+	}
 }
 
 void turnleft()
@@ -146,7 +138,7 @@ void turnleft()
     spaceship->faceAngle -= STEP;
 	if (spaceship->faceAngle < 0) {
 		spaceship->faceAngle = 359;
-	}	
+	}
 }
 
 void turnright()
@@ -157,8 +149,59 @@ void turnright()
 	}
 }
 
+void fireweapon()
+{
+    bullets->get(bullet_index)->x = spaceship->pointer_x - (bullets->get(bullet_index)->width / 2);
+    bullets->get(bullet_index)->y = spaceship->pointer_y - (bullets->get(bullet_index)->height / 2);
+    bullets->get(bullet_index)->faceAngle = spaceship->faceAngle;
+    //shift 0-degree orientation from right-face to up-face
+	bullets->get(bullet_index)->moveAngle = bullets->get(bullet_index)->faceAngle - 90;
+    //convert negative angle to wraparound
+	if (bullets->get(bullet_index)->moveAngle < 0) {
+		bullets->get(bullet_index)->moveAngle = 359 + bullets->get(bullet_index)->moveAngle;
+	}
+    bullets->get(bullet_index)->velx = calcAngleMoveX(bullets->get(bullet_index)->moveAngle) * BULLETSPEED;
+    bullets->get(bullet_index)->vely = calcAngleMoveY(bullets->get(bullet_index)->moveAngle) * BULLETSPEED;
+	bullets->get(bullet_index)->alive = 1;
+	
+	if (bullet_index++ > 10) {
+		bullet_index = 0;
+	}
+	bullet_cooldown = BULLETCOOLDOWN;
+}
+
+void updatebullet(int num)
+{
+    int x, y, tx, ty;
+		
+	//move the spaceship
+	bullets->get(num)->updatePosition();
+
+    //move bullet
+    bullets->get(num)->x += bullets->get(num)->velx;
+    bullets->get(num)->y += bullets->get(num)->vely;
+    x = bullets->get(num)->x;
+    y = bullets->get(num)->y;
+
+    //stay within the screen
+    if (x < 6 || x > SCREEN_W-6 || y < 20 || y > SCREEN_H-6)
+    {
+        bullets->get(num)->alive = 0;
+        return;
+    }
+
+    // Check if collide with asteroid
+    
+    // Else draw it
+    rotate_sprite(buffer, bullets->get(num)->image, (int)bullets->get(num)->x, bullets->get(num)->y, 
+		itofix((int)(bullets->get(num)->faceAngle / 0.7f / 2.0f)));
+}
+
 void update()
 {
+	//Loop variable
+	int i;
+	
 	//Clear background
 	blit(background, buffer, 0, 0, 0, 0, WIDTH, HEIGHT);
     
@@ -167,8 +210,18 @@ void update()
 	rotate_sprite(buffer, spaceship->image, (int)spaceship->x, (int)spaceship->y, 
         itofix((int)(spaceship->faceAngle / 0.7f / 2.0f)));
         
+    for (i = 0; i < BULLET_CAP; i++) {
+    	if (bullets->get(i)->alive == 1) {
+    		updatebullet(i);
+		}
+    }
+        
     //move the spaceship
 	spaceship->updatePosition();
+	
+	spaceship->pointer_x = spaceship->x + spaceship->width / 2 + calcAngleMoveX(spaceship->faceAngle - 90) * (spaceship->height / 2);
+	spaceship->pointer_y = spaceship->y + spaceship->height / 2 + calcAngleMoveY(spaceship->faceAngle - 90) * (spaceship->height / 2);
+	
     warpsprite(spaceship);
 }
 
@@ -179,11 +232,11 @@ void getinput()
     
     //ARROW KEYS AND SPACE BAR CONTROL
     if (key[KEY_UP]) {  
-		forward();
+		thrusters(1);
 	}
 	
     if (key[KEY_DOWN]) {
-		backward();
+		thrusters(-1);
 	}
 	
     if (key[KEY_LEFT]) {
@@ -193,7 +246,12 @@ void getinput()
     if (key[KEY_RIGHT]) {
 		turnright();
 	}
-    //if (key[KEY_SPACE]) fireweapon(0);
+	
+    if (key[KEY_SPACE]) {
+    	if (bullet_cooldown == 0) {
+    		fireweapon();
+    	}
+	}
 
     //short delay after keypress        
     rest(20);
@@ -216,6 +274,9 @@ void setupscreen()
 
 void setupgame()
 {
+	//Loop variable
+	int i;	
+
 	//Create a back buffer
 	buffer = create_bitmap(WIDTH,HEIGHT);
 	
@@ -229,14 +290,27 @@ void setupgame()
 		return;
 	}
 	
-    spaceship->width = 40;
-    spaceship->height = 50;
+    spaceship->width = spaceship->image->w;
+    spaceship->height = spaceship->image->h;
     spaceship->xdelay = 0;
     spaceship->ydelay = 0;
     spaceship->x = SCREEN_W / 2 - spaceship->width/2;
     spaceship->y = SCREEN_H / 2 - spaceship->height/2;
 	spaceship->moveAngle = 0;
 	spaceship->faceAngle = 0;
+	
+	bullets = new spritehandler();
+	
+	for (i = 0; i < BULLET_CAP; i++) {
+		bullets->create();
+		bullets->get(i)->load(BULLET_SPRITE);
+		bullets->get(i)->width = bullets->get(i)->image->w;
+		bullets->get(i)->height = bullets->get(i)->image->h;
+		bullets->get(i)->xdelay = 1;
+		bullets->get(i)->ydelay = 1;
+		bullets->get(i)->x = 0;
+		bullets->get(i)->y = 0;
+	}
 }
 
 int main(void)
@@ -284,6 +358,9 @@ int main(void)
 		}
 		
 		update();
+		if (bullet_cooldown > 0) {
+			bullet_cooldown--;	
+		}
 	    rest(10);
     }
     

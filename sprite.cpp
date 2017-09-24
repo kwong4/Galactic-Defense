@@ -4,13 +4,15 @@
 
 sprite::sprite() {
     image = NULL;
-    alive = 1;
+    alive = 0;
     direction = 0;
     animcolumns = 0;
     animstartx = 0; 
     animstarty = 0;
     x = 0.0f; 
     y = 0.0f;
+    pointer_x = 0.0f;
+    pointer_y = 0.0f;
     width = 0; 
     height = 0;
     xdelay = 0; 
