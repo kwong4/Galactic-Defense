@@ -19,13 +19,19 @@
 #define HEIGHT 600
 #define MODE GFX_AUTODETECT_WINDOWED
 #define CHAR_PER_LENGTH 8
-#define BULLET_CAP 10
-#define BULLETSPEED 2
+#define BULLET_CAP 15
+#define BULLETSPEED 4
 #define BULLETCOOLDOWN 10;
+#define SMALLASTEROID_COUNT 7
+#define LARGEASTEROID_COUNT 3
+#define ASTEROID_COUNT SMALLASTEROID_COUNT + LARGEASTEROID_COUNT
+#define ASTEROID_SPEED 
 
 #define SPACESHIP_SPRITE "sprites/Spaceship.bmp"
 #define BACKGROUND_SPRITE "sprites/Background.bmp"
 #define BULLET_SPRITE "sprites/Bullet.bmp"
+#define SMALL_ASTEROID_SPRITE "sprites/Asteroid1.bmp"
+#define LARGE_ASTEROID_SPRITE "sprites/Asteroid20.bmp"
 
 // Gameover variable
 int gameover = 0;
@@ -37,5 +43,6 @@ BITMAP *buffer;
 BITMAP *background;
 sprite *spaceship;
 spritehandler *bullets;
+spritehandler *asteroids;
 
 #endif

@@ -154,8 +154,10 @@ void fireweapon()
     bullets->get(bullet_index)->x = spaceship->pointer_x - (bullets->get(bullet_index)->width / 2);
     bullets->get(bullet_index)->y = spaceship->pointer_y - (bullets->get(bullet_index)->height / 2);
     bullets->get(bullet_index)->faceAngle = spaceship->faceAngle;
+    
     //shift 0-degree orientation from right-face to up-face
 	bullets->get(bullet_index)->moveAngle = bullets->get(bullet_index)->faceAngle - 90;
+	
     //convert negative angle to wraparound
 	if (bullets->get(bullet_index)->moveAngle < 0) {
 		bullets->get(bullet_index)->moveAngle = 359 + bullets->get(bullet_index)->moveAngle;
@@ -164,7 +166,9 @@ void fireweapon()
     bullets->get(bullet_index)->vely = calcAngleMoveY(bullets->get(bullet_index)->moveAngle) * BULLETSPEED;
 	bullets->get(bullet_index)->alive = 1;
 	
-	if (bullet_index++ > 10) {
+	bullet_index++;
+	
+	if (bullet_index > BULLET_CAP - 1) {
 		bullet_index = 0;
 	}
 	bullet_cooldown = BULLETCOOLDOWN;
@@ -174,7 +178,7 @@ void updatebullet(int num)
 {
     int x, y, tx, ty;
 		
-	//move the spaceship
+	//move the bullet
 	bullets->get(num)->updatePosition();
 
     //move bullet
@@ -197,6 +201,19 @@ void updatebullet(int num)
 		itofix((int)(bullets->get(num)->faceAngle / 0.7f / 2.0f)));
 }
 
+void updateasteroid(int num)
+{
+		
+	// draw it
+    rotate_sprite(buffer, asteroids->get(num)->image, (int)asteroids->get(num)->x, asteroids->get(num)->y, 
+		itofix((int)(asteroids->get(num)->faceAngle / 0.7f / 2.0f)));
+		
+	//move the asteroid
+	asteroids->get(num)->updatePosition();
+		
+	warpsprite(asteroids->get(num));
+}
+
 void update()
 {
 	//Loop variable
@@ -209,6 +226,10 @@ void update()
     //(256 / 360 = 0.7), then divide by 2 radians
 	rotate_sprite(buffer, spaceship->image, (int)spaceship->x, (int)spaceship->y, 
         itofix((int)(spaceship->faceAngle / 0.7f / 2.0f)));
+        
+    for (i = 0; i < ASTEROID_COUNT; i++) {
+    	updateasteroid(i);
+    }
         
     for (i = 0; i < BULLET_CAP; i++) {
     	if (bullets->get(i)->alive == 1) {
@@ -310,6 +331,61 @@ void setupgame()
 		bullets->get(i)->ydelay = 1;
 		bullets->get(i)->x = 0;
 		bullets->get(i)->y = 0;
+	}
+	
+	asteroids = new spritehandler();
+	for (i = 0; i < SMALLASTEROID_COUNT; i++) {
+		asteroids->create();
+		asteroids->get(i)->load(SMALL_ASTEROID_SPRITE);
+		asteroids->get(i)->width = asteroids->get(i)->image->w;
+		asteroids->get(i)->height = asteroids->get(i)->image->h;
+		asteroids->get(i)->xdelay = rand() % 3;
+		asteroids->get(i)->ydelay = rand() % 3;
+		if (rand() % 2 == 0) {
+			asteroids->get(i)->x = rand() % (SCREEN_W / 2 - asteroids->get(i)->width - spaceship->width * 2);
+		}
+		else {
+			asteroids->get(i)->x = rand() % (SCREEN_W / 2 + asteroids->get(i)->width + spaceship->width * 2);
+		}
+		
+		if (rand() % 2 == 0) {
+			asteroids->get(i)->y = rand() % (SCREEN_H / 2 - asteroids->get(i)->height - spaceship->height * 2);
+		}
+		else {
+			asteroids->get(i)->y = rand() % (SCREEN_H / 2 + asteroids->get(i)->height + spaceship->height * 2);
+		}
+		asteroids->get(i)->faceAngle = rand() % 360;
+		asteroids->get(i)->moveAngle = rand() % 360;
+		asteroids->get(i)->velx = calcAngleMoveX(asteroids->get(i)->moveAngle) * ((rand() % (ASTEROID_SPEED - 1)) + 1);
+		asteroids->get(i)->vely = calcAngleMoveY(asteroids->get(i)->moveAngle) * ((rand() % (ASTEROID_SPEED - 1)) + 1);
+	}
+	
+	for (i = SMALLASTEROID_COUNT; i < ASTEROID_COUNT; i++) {
+		asteroids->create();
+		asteroids->get(i)->load(LARGE_ASTEROID_SPRITE);
+		asteroids->get(i)->width = asteroids->get(i)->image->w;
+		asteroids->get(i)->height = asteroids->get(i)->image->h;
+		asteroids->get(i)->xdelay = rand() % 3;
+		asteroids->get(i)->ydelay = rand() % 3;
+		asteroids->get(i)->x = rand() % (SCREEN_W - asteroids->get(i)->width);
+		asteroids->get(i)->y = rand() % (SCREEN_H - asteroids->get(i)->height);
+		if (rand() % 2 == 0) {
+			asteroids->get(i)->x = rand() % (SCREEN_W / 2 - asteroids->get(i)->width - spaceship->width * 2);
+		}
+		else {
+			asteroids->get(i)->x = rand() % (SCREEN_W / 2 + asteroids->get(i)->width + spaceship->width * 2);
+		}
+		
+		if (rand() % 2 == 0) {
+			asteroids->get(i)->y = rand() % (SCREEN_H / 2 - asteroids->get(i)->height - spaceship->height * 2);
+		}
+		else {
+			asteroids->get(i)->y = rand() % (SCREEN_H / 2 + asteroids->get(i)->height + spaceship->height * 2);
+		}
+		asteroids->get(i)->faceAngle = rand() % 360;
+		asteroids->get(i)->moveAngle = rand() % 360;
+		asteroids->get(i)->velx = calcAngleMoveX(asteroids->get(i)->moveAngle) * ((rand() % (ASTEROID_SPEED - 1)) + 1);
+		asteroids->get(i)->vely = calcAngleMoveY(asteroids->get(i)->moveAngle) * ((rand() % (ASTEROID_SPEED - 1)) + 1);
 	}
 }
 
