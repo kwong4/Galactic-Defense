@@ -9,6 +9,8 @@
 #define BLACK makecol(0,0,0)
 #define WHITE makecol(255,255,255)
 #define YELLOW makecol(255,216,0)
+#define RED makecol(255,0,0)
+#define ORANGE makecol(255,127.5,0)
 
 #define PI 3.1415926535
 #define ACCELERATION 0.1f
