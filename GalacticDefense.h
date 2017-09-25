@@ -36,6 +36,7 @@
 #define LARGE_ASTEROID_SPRITE "sprites/Asteroid20.bmp"
 #define LARGE_ASTEROID_SPRITE2 "sprites/Asteroid21.bmp"
 #define LARGE_ASTEROID_SPRITE3 "sprites/Asteroid22.bmp"
+#define GALATICDEFENSE "sprites/GalaticDefense.bmp"
 
 // Gameover variable
 int gameover = 0;
@@ -43,8 +44,11 @@ int bullet_index = 0;
 int bullet_cooldown = 0;
 int score = 0;
 int hardmode = 0;
+int selection = 0;
+int max_selection = 2;
 
 //create a back buffer
+BITMAP *title;
 BITMAP *buffer;
 BITMAP *background;
 sprite *spaceship;

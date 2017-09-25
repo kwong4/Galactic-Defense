@@ -46,11 +46,77 @@ void print_formated(const char* text, int x1, int x2, int y, int col, int bg) {
 	}
 }
 
+void instructions() {
+	
+}
+
+int getmenuinput() {
+	
+	// If user quits game
+	if (key[KEY_ESC]) {
+		allegro_exit();
+		exit(0);
+	}
+	
+	// Move cursor for selection
+	if (key[KEY_DOWN] && selection != max_selection) {
+		rectfill(screen, WIDTH/3 + 1, HEIGHT/2 + selection * 15 + 81, WIDTH/3 + 9, HEIGHT/2 + selection * 15 + 89, BLACK);
+		selection++;
+		rectfill(screen, WIDTH/3 + 1, HEIGHT/2 +  selection * 15 + 81, WIDTH/3 + 9, HEIGHT/2 + selection * 15 + 89, WHITE);
+	}
+	else if (key[KEY_UP] && selection != 0) {
+		rectfill(screen, WIDTH/3 + 1, HEIGHT/2 + selection * 15 + 81, WIDTH/3 + 9, HEIGHT/2 +  selection * 15 + 89, BLACK);
+		selection--;
+		rectfill(screen, WIDTH/3 + 1, HEIGHT/2 + selection * 15 + 81, WIDTH/3 + 9, HEIGHT/2 + selection * 15 + 89, WHITE);
+	}
+	else if (key[KEY_ENTER]) {
+		return -1;
+	}
+}
+
 // Draw initial start screen instructions
 void draw_startscreen() {
 	
-	textout_centre_ex(screen, font, "Galactic Defense", WIDTH/2, HEIGHT/4, WHITE, BLACK);
-    textout_centre_ex(screen, font, "Press ENTER to Start!", WIDTH/2, HEIGHT/2, WHITE, BLACK);
+	blit(title, screen, 0, 0, 150, 50, title->w, title->h);
+	
+    textout_centre_ex(screen, font, "Press use your ARROW KEYS and ENTER to select an option!", WIDTH/2, HEIGHT/2 + 40, WHITE, BLACK);
+    rect(screen, WIDTH/3, HEIGHT/2 + 80 , WIDTH/3 + 10, HEIGHT/2 + 90, WHITE);
+    textout_ex(screen, font, "Start!", WIDTH/3 + 25, HEIGHT/2 + 82, WHITE, BLACK);
+    rect(screen, WIDTH/3, HEIGHT/2 + 95, WIDTH/3 + 10, HEIGHT/2 + 105, WHITE);
+    textout_ex(screen, font, "Instructions", WIDTH/3 + 25, HEIGHT/2 + 97, WHITE, BLACK);
+    rect(screen, WIDTH/3, HEIGHT/2 + 110, WIDTH/3 + 10, HEIGHT/2 + 120, WHITE);
+    textout_ex(screen, font, "Gamemode:", WIDTH/3 + 25, HEIGHT/2 + 112, WHITE, BLACK);
+    selection = 0;
+    rectfill(screen, WIDTH/3 + 1, HEIGHT/2 + 81, WIDTH/3 + 9, HEIGHT/2 + 89, WHITE);
+    
+    if (hardmode == 0) {
+    	textout_ex(screen, font, "Easy", WIDTH/3 + 100, HEIGHT/2 + 112, YELLOW, BLACK);
+    }
+    else {
+    	textout_ex(screen, font, "Hard", WIDTH/3 + 100, HEIGHT/2 + 112, YELLOW, BLACK);
+    }
+    
+    while (1) {
+    	if (getmenuinput() == -1) {
+    		if (selection == 0) {
+    			break;
+    		}
+    		else if (selection == 1) {
+    			
+    		}
+    		else {
+    			hardmode = (hardmode + 1) % 2;
+    			if (hardmode == 0) {
+		    		textout_ex(screen, font, "Easy", WIDTH/3 + 100, HEIGHT/2 + 112, YELLOW, BLACK);
+			    }
+			    else {
+			    	textout_ex(screen, font, "Hard", WIDTH/3 + 100, HEIGHT/2 + 112, YELLOW, BLACK);
+			    }
+    		}
+    	}
+	    rest(100);
+    }
+    /*
     textout_centre_ex(screen, font, "INSTRUCTIONS:", WIDTH/2, HEIGHT/2 + 40, WHITE, BLACK);
     textout_ex(screen, font, "1. Use the arrow keys to navigate your space ship", WIDTH/8, HEIGHT/2 + 60, WHITE, BLACK);
     textout_ex(screen, font, "   Use the UP and DOWN key to accelerate and decelerate", WIDTH/8, HEIGHT/2 + 70, YELLOW, BLACK);
@@ -58,6 +124,7 @@ void draw_startscreen() {
     textout_ex(screen, font, "2. Use the SPACE bar key to shoot", WIDTH/8, HEIGHT/2 + 90, WHITE, BLACK);
     print_formated("3. Use the 'g' key to activate a pulse that pushes all asteroids within a small area away", WIDTH/8, WIDTH - 10, HEIGHT/2 + 100, WHITE, BLACK);
     textout_ex(screen, font, "4. Press Esc to exit the game!", WIDTH/8, HEIGHT/2 + 120, WHITE, BLACK);
+    */
 }
 
 //calculate X movement value based on direction angle
@@ -475,16 +542,24 @@ void getinput()
 void setupscreen()
 {
     int ret;
-
+	
     //set video mode    
     set_color_depth(desktop_color_depth());
     ret = set_gfx_mode(MODE, WIDTH, HEIGHT, 0, 0);
     if (ret != 0) {
-        allegro_message(allegro_error);
-        return;
-    }
-   
-   	draw_startscreen();
+	    allegro_message(allegro_error);
+	    return;
+	}
+	
+	//load background buffer
+	title = load_bitmap(GALATICDEFENSE, NULL);
+	if (!title) {
+		allegro_message("Error loading sprites");
+		return;
+	}
+	
+	
+	draw_startscreen();
 }
 
 void setupgame()
