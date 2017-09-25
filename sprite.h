@@ -22,12 +22,17 @@ public:
 	int animcolumns;
 	int animstartx, animstarty;
 	int faceAngle, moveAngle;
+	int health;
 	BITMAP *image;
+	BITMAP *image2;
+	BITMAP *image3;
 
 public:
 	sprite();
 	~sprite();
 	int load(char *filename);
+	int load2(char *filename);
+	int load3(char *filename);
 	void draw(BITMAP *dest);
 	void drawframe(BITMAP *dest);
 	void updatePosition();

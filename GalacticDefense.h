@@ -20,7 +20,7 @@
 #define MODE GFX_AUTODETECT_WINDOWED
 #define CHAR_PER_LENGTH 8
 #define BULLET_CAP 15
-#define BULLETSPEED 4
+#define BULLETSPEED 6
 #define BULLETCOOLDOWN 10;
 #define SMALLASTEROID_COUNT 7
 #define LARGEASTEROID_COUNT 3
@@ -32,11 +32,15 @@
 #define BULLET_SPRITE "sprites/Bullet.bmp"
 #define SMALL_ASTEROID_SPRITE "sprites/Asteroid1.bmp"
 #define LARGE_ASTEROID_SPRITE "sprites/Asteroid20.bmp"
+#define LARGE_ASTEROID_SPRITE2 "sprites/Asteroid21.bmp"
+#define LARGE_ASTEROID_SPRITE3 "sprites/Asteroid22.bmp"
 
 // Gameover variable
 int gameover = 0;
 int bullet_index = 0;
 int bullet_cooldown = 0;
+int score = 0;
+int hardmode = 0;
 
 //create a back buffer
 BITMAP *buffer;

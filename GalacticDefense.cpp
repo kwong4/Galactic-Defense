@@ -98,6 +98,133 @@ void warpsprite(sprite *spr)
 
 }
 
+void restart_asteroid(int num) {
+	
+	int collide;
+	int i;
+	
+	while (1) {
+			collide = 0;
+			
+			if (rand() % 2 == 0) {
+				if (rand() % 2 == 0) {
+					asteroids->get(num)->x = 0;
+					asteroids->get(num)->y = rand() % (SCREEN_H - asteroids->get(num)->height);
+				}
+				else {
+					asteroids->get(num)->x = SCREEN_W - asteroids->get(num)->width;
+					asteroids->get(num)->y = rand() % (SCREEN_H - asteroids->get(num)->height);
+				}
+			}
+			else {
+				if (rand() % 2 == 0) {
+					asteroids->get(num)->x = rand() % (SCREEN_W - asteroids->get(num)->width);
+					asteroids->get(num)->y = 0;
+				}
+				else {
+					asteroids->get(num)->x = rand() % (SCREEN_W - asteroids->get(num)->width);
+					asteroids->get(num)->y = SCREEN_H - asteroids->get(num)->height;
+				}
+			}
+			
+			for (i = 0; i < ASTEROID_COUNT; i++) {
+				if (i != num && asteroids->get(i)->collided(asteroids->get(num))) {
+        			collide = 1;
+					break;	
+        		}
+			}
+			
+			if (collide == 0) {
+				break;
+			}
+		}
+		
+	asteroids->get(num)->alive = 1;	
+	
+	if (num >= SMALLASTEROID_COUNT) {
+		asteroids->get(num)->health = 3;
+	}
+	else {
+		asteroids->get(num)->health = 1;
+	}
+	
+}
+
+void checkcollisions_asteroid(int num)
+{
+    int cx1,cy1,cx2,cy2;
+    int i;
+
+    for (i=0; i<ASTEROID_COUNT; i++)
+    {
+        if (i != num && asteroids->get(i)->collided(asteroids->get(num)))
+        {
+        	
+            //calculate center of primary sprite
+            cx1 = (int)asteroids->get(i)->x + asteroids->get(i)->width / 2;
+            cy1 = (int)asteroids->get(i)->y + asteroids->get(i)->height / 2;
+            
+            //calculate center of secondary sprite
+            cx2 = (int)asteroids->get(i)->x + asteroids->get(i)->width / 2;
+            cy2 = (int)asteroids->get(i)->y + asteroids->get(i)->height / 2;
+            
+            //figure out which way the sprites collided
+            if (cx1 <= cx2)
+            {
+                asteroids->get(i)->velx = -1 * (rand() % 6) - 1;
+                asteroids->get(num)->velx = rand() % 6 + 1;
+                if (cy1 <= cy2)
+                {
+                    asteroids->get(i)->vely = -1 * (rand() % 6) - 1;
+                    asteroids->get(num)->vely = rand() % 6 + 1;
+                }
+                else
+                {
+                    asteroids->get(i)->vely = rand() % 6 + 1;
+                    asteroids->get(num)->vely = -1 * (rand() % 6) - 1;
+                }
+            }
+            else
+            {
+                //cx1 is > cx2
+                asteroids->get(i)->velx = rand() % 6 + 1;
+                asteroids->get(num)->velx = -1 * (rand() % 6) - 1;
+                if (cy1 <= cy2)
+                {
+                    asteroids->get(i)->vely = rand() % 6 + 1;
+                    asteroids->get(num)->vely = -1 * (rand() % 6) - 1;
+                }
+                else
+                {
+                    asteroids->get(i)->vely = -1 * (rand() % 6) - 1;
+                    asteroids->get(num)->vely = rand() % 6 + 1;
+                }
+            }
+        }
+    }
+}
+
+void checkcollisions_bullet(int num)
+{
+    int i;
+
+    for (i=0; i<ASTEROID_COUNT; i++)
+    {
+        if (bullets->get(num)->collided(asteroids->get(i)))
+        {
+        	asteroids->get(i)->health--;
+        	
+        	if (asteroids->get(i)->health == 0) {
+        		score += 100;
+        		asteroids->get(i)->alive = 0;
+        	}
+        	
+        	bullets->get(num)->alive = 0;
+        	break;
+        }
+    }
+}
+
 void thrusters(int dir)
 {
     //shift 0-degree orientation from right-face to up-face
@@ -180,10 +307,7 @@ void updatebullet(int num)
 		
 	//move the bullet
 	bullets->get(num)->updatePosition();
-
-    //move bullet
-    bullets->get(num)->x += bullets->get(num)->velx;
-    bullets->get(num)->y += bullets->get(num)->vely;
+	
     x = bullets->get(num)->x;
     y = bullets->get(num)->y;
 
@@ -195,22 +319,40 @@ void updatebullet(int num)
     }
 
     // Check if collide with asteroid
+    checkcollisions_bullet(num);
     
     // Else draw it
-    rotate_sprite(buffer, bullets->get(num)->image, (int)bullets->get(num)->x, bullets->get(num)->y, 
+    if (bullets->get(num)->alive) {
+    	rotate_sprite(buffer, bullets->get(num)->image, (int)bullets->get(num)->x, bullets->get(num)->y, 
 		itofix((int)(bullets->get(num)->faceAngle / 0.7f / 2.0f)));
+    }
 }
 
 void updateasteroid(int num)
 {
 		
+    //rotate_sprite(buffer, asteroids->get(num)->image, (int)asteroids->get(num)->x, asteroids->get(num)->y, 
+	//	itofix((int)(asteroids->get(num)->faceAngle / 0.7f / 2.0f)));
+		
 	// draw it
-    rotate_sprite(buffer, asteroids->get(num)->image, (int)asteroids->get(num)->x, asteroids->get(num)->y, 
-		itofix((int)(asteroids->get(num)->faceAngle / 0.7f / 2.0f)));
+	
+	if (asteroids->get(num)->health == 3 || num < SMALLASTEROID_COUNT) {
+		draw_sprite(buffer, asteroids->get(num)->image, (int)asteroids->get(num)->x, asteroids->get(num)->y);
+	}
+	else if (asteroids->get(num)->health == 2) {
+		draw_sprite(buffer, asteroids->get(num)->image2, (int)asteroids->get(num)->x, asteroids->get(num)->y);
+	}
+	else {
+		draw_sprite(buffer, asteroids->get(num)->image3, (int)asteroids->get(num)->x, asteroids->get(num)->y);
+	}
 		
 	//move the asteroid
 	asteroids->get(num)->updatePosition();
 		
+	if (hardmode == 1) {
+		checkcollisions_asteroid(num);
+	}
+	
 	warpsprite(asteroids->get(num));
 }
 
@@ -221,20 +363,20 @@ void update()
 	
 	//Clear background
 	blit(background, buffer, 0, 0, 0, 0, WIDTH, HEIGHT);
-    
-    //rotate sprite with adjust for Allegro's 16.16 fixed trig
-    //(256 / 360 = 0.7), then divide by 2 radians
-	rotate_sprite(buffer, spaceship->image, (int)spaceship->x, (int)spaceship->y, 
-        itofix((int)(spaceship->faceAngle / 0.7f / 2.0f)));
-        
-    for (i = 0; i < ASTEROID_COUNT; i++) {
-    	updateasteroid(i);
-    }
-        
-    for (i = 0; i < BULLET_CAP; i++) {
+	
+	for (i = 0; i < BULLET_CAP; i++) {
     	if (bullets->get(i)->alive == 1) {
     		updatebullet(i);
 		}
+    }
+        
+    for (i = 0; i < ASTEROID_COUNT; i++) {
+    	if (asteroids->get(i)->alive == 1) {
+    		updateasteroid(i);
+    	}
+    	else {
+    		restart_asteroid(i);
+    	}
     }
         
     //move the spaceship
@@ -242,6 +384,11 @@ void update()
 	
 	spaceship->pointer_x = spaceship->x + spaceship->width / 2 + calcAngleMoveX(spaceship->faceAngle - 90) * (spaceship->height / 2);
 	spaceship->pointer_y = spaceship->y + spaceship->height / 2 + calcAngleMoveY(spaceship->faceAngle - 90) * (spaceship->height / 2);
+	
+	//rotate sprite with adjust for Allegro's 16.16 fixed trig
+    //(256 / 360 = 0.7), then divide by 2 radians
+	rotate_sprite(buffer, spaceship->image, (int)spaceship->x, (int)spaceship->y, 
+        itofix((int)(spaceship->faceAngle / 0.7f / 2.0f)));
 	
     warpsprite(spaceship);
 }
@@ -297,6 +444,8 @@ void setupgame()
 {
 	//Loop variable
 	int i;	
+	int j;
+	int collide;
 
 	//Create a back buffer
 	buffer = create_bitmap(WIDTH,HEIGHT);
@@ -313,6 +462,7 @@ void setupgame()
 	
     spaceship->width = spaceship->image->w;
     spaceship->height = spaceship->image->h;
+    spaceship->health = 3;
     spaceship->xdelay = 0;
     spaceship->ydelay = 0;
     spaceship->x = SCREEN_W / 2 - spaceship->width/2;
@@ -327,8 +477,8 @@ void setupgame()
 		bullets->get(i)->load(BULLET_SPRITE);
 		bullets->get(i)->width = bullets->get(i)->image->w;
 		bullets->get(i)->height = bullets->get(i)->image->h;
-		bullets->get(i)->xdelay = 1;
-		bullets->get(i)->ydelay = 1;
+		bullets->get(i)->xdelay = 0;
+		bullets->get(i)->ydelay = 0;
 		bullets->get(i)->x = 0;
 		bullets->get(i)->y = 0;
 	}
@@ -337,53 +487,85 @@ void setupgame()
 	for (i = 0; i < SMALLASTEROID_COUNT; i++) {
 		asteroids->create();
 		asteroids->get(i)->load(SMALL_ASTEROID_SPRITE);
+		asteroids->get(i)->health = 1;
 		asteroids->get(i)->width = asteroids->get(i)->image->w;
 		asteroids->get(i)->height = asteroids->get(i)->image->h;
-		asteroids->get(i)->xdelay = rand() % 3;
-		asteroids->get(i)->ydelay = rand() % 3;
-		if (rand() % 2 == 0) {
-			asteroids->get(i)->x = rand() % (SCREEN_W / 2 - asteroids->get(i)->width - spaceship->width * 2);
-		}
-		else {
-			asteroids->get(i)->x = rand() % (SCREEN_W / 2 + asteroids->get(i)->width + spaceship->width * 2);
+		asteroids->get(i)->xdelay = 1;
+		asteroids->get(i)->ydelay = 1;
+		asteroids->get(i)->alive = 1;
+		while (1) {
+			collide = 0;
+			
+			if (rand() % 2 == 0) {
+				asteroids->get(i)->x = rand() % (SCREEN_W / 2) - (asteroids->get(i)->width - spaceship->width * 2);
+			}
+			else {
+				asteroids->get(i)->x = rand() % (SCREEN_W / 2) + (asteroids->get(i)->width + spaceship->width * 2);
+			}
+			
+			if (rand() % 2 == 0) {
+				asteroids->get(i)->y = rand() % (SCREEN_H / 2) - (asteroids->get(i)->height - spaceship->height * 2);
+			}
+			else {
+				asteroids->get(i)->y = rand() % (SCREEN_H / 2) + (asteroids->get(i)->height + spaceship->height * 2);
+			}
+			
+			for (j = 0; j < i; j++) {
+				if (asteroids->get(j)->collided(asteroids->get(i))) {
+        			collide = 1;
+					break;	
+        		}
+			}
+			
+			if (collide == 0) {
+				break;
+			}
 		}
 		
-		if (rand() % 2 == 0) {
-			asteroids->get(i)->y = rand() % (SCREEN_H / 2 - asteroids->get(i)->height - spaceship->height * 2);
-		}
-		else {
-			asteroids->get(i)->y = rand() % (SCREEN_H / 2 + asteroids->get(i)->height + spaceship->height * 2);
-		}
-		asteroids->get(i)->faceAngle = rand() % 360;
-		asteroids->get(i)->moveAngle = rand() % 360;
-		asteroids->get(i)->velx = calcAngleMoveX(asteroids->get(i)->moveAngle) * ((rand() % (ASTEROID_SPEED - 1)) + 1);
-		asteroids->get(i)->vely = calcAngleMoveY(asteroids->get(i)->moveAngle) * ((rand() % (ASTEROID_SPEED - 1)) + 1);
+		asteroids->get(i)->velx = (rand() % 12) - 6;
+		asteroids->get(i)->vely = (rand() % 12) - 6;
 	}
 	
 	for (i = SMALLASTEROID_COUNT; i < ASTEROID_COUNT; i++) {
 		asteroids->create();
 		asteroids->get(i)->load(LARGE_ASTEROID_SPRITE);
+		asteroids->get(i)->load2(LARGE_ASTEROID_SPRITE2);
+		asteroids->get(i)->load3(LARGE_ASTEROID_SPRITE3);
+		asteroids->get(i)->health = 3;
 		asteroids->get(i)->width = asteroids->get(i)->image->w;
 		asteroids->get(i)->height = asteroids->get(i)->image->h;
-		asteroids->get(i)->xdelay = rand() % 3;
-		asteroids->get(i)->ydelay = rand() % 3;
-		asteroids->get(i)->x = rand() % (SCREEN_W - asteroids->get(i)->width);
-		asteroids->get(i)->y = rand() % (SCREEN_H - asteroids->get(i)->height);
-		if (rand() % 2 == 0) {
-			asteroids->get(i)->x = rand() % (SCREEN_W / 2 - asteroids->get(i)->width - spaceship->width * 2);
-		}
-		else {
-			asteroids->get(i)->x = rand() % (SCREEN_W / 2 + asteroids->get(i)->width + spaceship->width * 2);
+		asteroids->get(i)->xdelay = 1;
+		asteroids->get(i)->ydelay = 1;
+		asteroids->get(i)->alive = 1;
+		while (1) {
+			collide = 0;
+			
+			if (rand() % 2 == 0) {
+				asteroids->get(i)->x = rand() % (SCREEN_W / 2 - asteroids->get(i)->width - spaceship->width * 2);
+			}
+			else {
+				asteroids->get(i)->x = rand() % (SCREEN_W / 2 + asteroids->get(i)->width + spaceship->width * 2);
+			}
+			
+			if (rand() % 2 == 0) {
+				asteroids->get(i)->y = rand() % (SCREEN_H / 2 - asteroids->get(i)->height - spaceship->height * 2);
+			}
+			else {
+				asteroids->get(i)->y = rand() % (SCREEN_H / 2 + asteroids->get(i)->height + spaceship->height * 2);
+			}
+			
+			for (j = 0; j < i; j++) {
+				if (asteroids->get(j)->collided(asteroids->get(i))) {
+	    			collide = 1;
+					break;	
+	    		}
+			}
+			
+			if (collide == 0) {
+				break;
+			}
 		}
 		
-		if (rand() % 2 == 0) {
-			asteroids->get(i)->y = rand() % (SCREEN_H / 2 - asteroids->get(i)->height - spaceship->height * 2);
-		}
-		else {
-			asteroids->get(i)->y = rand() % (SCREEN_H / 2 + asteroids->get(i)->height + spaceship->height * 2);
-		}
-		asteroids->get(i)->faceAngle = rand() % 360;
-		asteroids->get(i)->moveAngle = rand() % 360;
 		asteroids->get(i)->velx = calcAngleMoveX(asteroids->get(i)->moveAngle) * ((rand() % (ASTEROID_SPEED - 1)) + 1);
 		asteroids->get(i)->vely = calcAngleMoveY(asteroids->get(i)->moveAngle) * ((rand() % (ASTEROID_SPEED - 1)) + 1);
 	}
@@ -404,7 +586,6 @@ int main(void)
     srand(time(NULL));
     
     setupscreen();
-    
     
     while(1) {
     	if (key[KEY_ENTER]) {

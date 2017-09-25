@@ -4,6 +4,9 @@
 
 sprite::sprite() {
     image = NULL;
+    image2 = NULL;
+    image3 = NULL;
+    health = 0;
     alive = 0;
     direction = 0;
     animcolumns = 0;
@@ -40,6 +43,22 @@ sprite::~sprite() {
 int sprite::load(char *filename) {
 	image = load_bitmap(filename, NULL);
 	if (image == NULL) return 0;
+	   width = image->w;
+	   height = image->h;
+    return 1;
+}
+
+int sprite::load2(char *filename) {
+	image2 = load_bitmap(filename, NULL);
+	if (image2 == NULL) return 0;
+	   width = image->w;
+	   height = image->h;
+    return 1;
+}
+
+int sprite::load3(char *filename) {
+	image3 = load_bitmap(filename, NULL);
+	if (image3 == NULL) return 0;
 	   width = image->w;
 	   height = image->h;
     return 1;
