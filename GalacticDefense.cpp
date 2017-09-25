@@ -47,7 +47,39 @@ void print_formated(const char* text, int x1, int x2, int y, int col, int bg) {
 }
 
 void instructions() {
+	rectfill(screen, 0, 0, WIDTH, HEIGHT, BLACK);
 	
+	textout_centre_ex(screen, font, "GAME INFO:", WIDTH/2, HEIGHT/4, WHITE, BLACK);
+	textout_ex(screen, font, "- You are tasked with the defense of the Galaxy.", WIDTH/8, HEIGHT/4 + 20, WHITE, BLACK);
+	textout_ex(screen, font, "- Your goal is to destory as much asteroids before your ship needs repairs", WIDTH/8, HEIGHT/4 + 30, WHITE, BLACK);
+	textout_ex(screen, font, "- You can take a total of 3 hits before your ship needs repairs", WIDTH/8, HEIGHT/4 + 40, WHITE, BLACK);
+	textout_ex(screen, font, "- Small Asteroids take 1 hit to destory. But Big Asteroids require 3 hits to destory.", WIDTH/8, HEIGHT/4 + 50, WHITE, BLACK);
+	textout_ex(screen, font, "- Easy gamemode will allow asteroids to pass by each other in predictable movement", WIDTH/8, HEIGHT/4 + 70, WHITE, BLACK);
+	textout_ex(screen, font, "- Hard gamemode will make asteroids have unpredictable movements due to magnetic", WIDTH/8, HEIGHT/4 + 80, WHITE, BLACK);
+	textout_ex(screen, font, "    properties of each asteroid", WIDTH/8, HEIGHT/4 + 90, WHITE, BLACK);
+	
+	textout_centre_ex(screen, font, "INSTRUCTIONS:", WIDTH/2, HEIGHT/2 + 40, WHITE, BLACK);
+    textout_ex(screen, font, "1. Use the arrow keys to navigate your space ship", WIDTH/8, HEIGHT/2 + 60, WHITE, BLACK);
+    textout_ex(screen, font, "   Use the UP and DOWN key to accelerate and decelerate", WIDTH/8, HEIGHT/2 + 70, YELLOW, BLACK);
+    textout_ex(screen, font, "   Use the LEFT and RIGHT key to TURN", WIDTH/8, HEIGHT/2 + 80, YELLOW, BLACK);
+    textout_ex(screen, font, "2. Use the SPACE bar key to shoot", WIDTH/8, HEIGHT/2 + 90, WHITE, BLACK);
+    print_formated("3. Use the 'g' key to activate a pulse that pushes all asteroids within a small area away", WIDTH/8, WIDTH - 10, HEIGHT/2 + 100, WHITE, BLACK);
+    textout_ex(screen, font, "4. Press Esc to exit the game!", WIDTH/8, HEIGHT/2 + 120, WHITE, BLACK);
+    
+    textout_centre_ex(screen, font, "Press ENTER to return", WIDTH/2, HEIGHT/2 + 200, WHITE, BLACK);
+    
+    rest(250);
+    
+    while(1) {
+    	if (key[KEY_ENTER]) {
+			break;
+		}
+		
+		if (key[KEY_ESC]) {
+			allegro_exit();
+			exit(0);	
+		}
+    }
 }
 
 int getmenuinput() {
@@ -74,9 +106,7 @@ int getmenuinput() {
 	}
 }
 
-// Draw initial start screen instructions
-void draw_startscreen() {
-	
+void welcome_screen() {
 	blit(title, screen, 0, 0, 150, 50, title->w, title->h);
 	
     textout_centre_ex(screen, font, "Press use your ARROW KEYS and ENTER to select an option!", WIDTH/2, HEIGHT/2 + 40, WHITE, BLACK);
@@ -94,7 +124,13 @@ void draw_startscreen() {
     }
     else {
     	textout_ex(screen, font, "Hard", WIDTH/3 + 100, HEIGHT/2 + 112, YELLOW, BLACK);
-    }
+    }	
+}
+
+// Draw initial start screen instructions
+void draw_startscreen() {
+    
+    welcome_screen();
     
     while (1) {
     	if (getmenuinput() == -1) {
@@ -102,7 +138,9 @@ void draw_startscreen() {
     			break;
     		}
     		else if (selection == 1) {
-    			
+    			instructions();
+    			rectfill(screen, 0, 0, WIDTH, HEIGHT, BLACK);
+    			welcome_screen();
     		}
     		else {
     			hardmode = (hardmode + 1) % 2;
@@ -116,15 +154,6 @@ void draw_startscreen() {
     	}
 	    rest(100);
     }
-    /*
-    textout_centre_ex(screen, font, "INSTRUCTIONS:", WIDTH/2, HEIGHT/2 + 40, WHITE, BLACK);
-    textout_ex(screen, font, "1. Use the arrow keys to navigate your space ship", WIDTH/8, HEIGHT/2 + 60, WHITE, BLACK);
-    textout_ex(screen, font, "   Use the UP and DOWN key to accelerate and decelerate", WIDTH/8, HEIGHT/2 + 70, YELLOW, BLACK);
-    textout_ex(screen, font, "   Use the LEFT and RIGHT key to TURN", WIDTH/8, HEIGHT/2 + 80, YELLOW, BLACK);
-    textout_ex(screen, font, "2. Use the SPACE bar key to shoot", WIDTH/8, HEIGHT/2 + 90, WHITE, BLACK);
-    print_formated("3. Use the 'g' key to activate a pulse that pushes all asteroids within a small area away", WIDTH/8, WIDTH - 10, HEIGHT/2 + 100, WHITE, BLACK);
-    textout_ex(screen, font, "4. Press Esc to exit the game!", WIDTH/8, HEIGHT/2 + 120, WHITE, BLACK);
-    */
 }
 
 //calculate X movement value based on direction angle
