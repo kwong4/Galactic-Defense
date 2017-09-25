@@ -36,6 +36,7 @@
 #define LARGE_ASTEROID_SPRITE "sprites/Asteroid20.bmp"
 #define LARGE_ASTEROID_SPRITE2 "sprites/Asteroid21.bmp"
 #define LARGE_ASTEROID_SPRITE3 "sprites/Asteroid22.bmp"
+#define EXPLOSION "sprites/Explosion.bmp"
 #define GALATICDEFENSE "sprites/GalaticDefense.bmp"
 
 // Gameover variable
@@ -51,6 +52,7 @@ int max_selection = 2;
 BITMAP *title;
 BITMAP *buffer;
 BITMAP *background;
+BITMAP *explosion;
 sprite *spaceship;
 spritehandler *bullets;
 spritehandler *asteroids;

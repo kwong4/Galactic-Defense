@@ -235,6 +235,8 @@ void restart_asteroid(int num) {
 			}
 		}
 		
+	asteroids->get(num)->velx = (rand() % 12) - 6;
+	asteroids->get(num)->vely = (rand() % 12) - 6;
 	asteroids->get(num)->alive = 1;	
 	
 	if (num >= SMALLASTEROID_COUNT) {
@@ -311,6 +313,7 @@ void checkcollisions_bullet(int num)
         	asteroids->get(i)->health--;
         	
         	if (asteroids->get(i)->health == 0) {
+        		draw_sprite(buffer, explosion, bullets->get(num)->x, bullets->get(num)->y);
         		score += 100;
         		asteroids->get(i)->alive = 0;
         	}
@@ -540,6 +543,10 @@ void getinput()
     if (key[KEY_ESC]) {
 		gameover = 1;
 	}
+	
+	if (key[KEY_LCONTROL] && key[KEY_H]) {
+		instructions();
+	}
     
     //ARROW KEYS AND SPACE BAR CONTROL
     if (key[KEY_UP]) {  
@@ -587,7 +594,6 @@ void setupscreen()
 		return;
 	}
 	
-	
 	draw_startscreen();
 }
 
@@ -604,9 +610,12 @@ void setupgame()
 	//load background buffer
 	background = load_bitmap(BACKGROUND_SPRITE, NULL);
 	
+	//load explosion buffer
+	explosion = load_bitmap(EXPLOSION, NULL);
+	
 	//Create a spaceship sprite
 	spaceship = new sprite();
-	if (!spaceship->load(SPACESHIP_SPRITE) || !background) {
+	if (!spaceship->load(SPACESHIP_SPRITE) || !background || !explosion) {
 		allegro_message("Error loading sprites");
 		return;
 	}
