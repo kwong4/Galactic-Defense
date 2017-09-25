@@ -544,17 +544,17 @@ void setupgame()
 			collide = 0;
 			
 			if (rand() % 2 == 0) {
-				asteroids->get(i)->x = rand() % ((SCREEN_W / 2) - (asteroids->get(i)->width - spaceship->width * 2));
+				asteroids->get(i)->x = rand() % ((SCREEN_W / 2) - (asteroids->get(i)->width + spaceship->width));
 			}
 			else {
-				asteroids->get(i)->x = rand() % ((SCREEN_W / 2) - (asteroids->get(i)->width - spaceship->width * 2)) + ((SCREEN_W / 2) + (asteroids->get(i)->width + spaceship->width * 2));
+				asteroids->get(i)->x = rand() % ((SCREEN_W / 2) - (asteroids->get(i)->width + spaceship->width)) + ((SCREEN_W / 2) + (asteroids->get(i)->width + spaceship->width));
 			}
 			
 			if (rand() % 2 == 0) {
-				asteroids->get(i)->y = rand() % (SCREEN_H / 2) - (asteroids->get(i)->height - spaceship->height * 2);
+				asteroids->get(i)->y = rand() % (SCREEN_H / 2) - (asteroids->get(i)->height + spaceship->height);
 			}
 			else {
-				asteroids->get(i)->y = rand() % ((SCREEN_H / 2) - (asteroids->get(i)->height + spaceship->height * 2)) + ((SCREEN_H / 2) + (asteroids->get(i)->height + spaceship->height * 2));
+				asteroids->get(i)->y = rand() % ((SCREEN_H / 2) - (asteroids->get(i)->height + spaceship->height)) + ((SCREEN_H / 2) + (asteroids->get(i)->height + spaceship->height));
 			}
 			
 			for (j = 0; j < i; j++) {
@@ -588,17 +588,17 @@ void setupgame()
 			collide = 0;
 			
 			if (rand() % 2 == 0) {
-				asteroids->get(i)->x = rand() % (SCREEN_W / 2 - asteroids->get(i)->width - spaceship->width * 2);
+				asteroids->get(i)->x = rand() % ((SCREEN_W / 2) - (asteroids->get(i)->width + spaceship->width));
 			}
 			else {
-				asteroids->get(i)->x = rand() % (SCREEN_W / 2 + asteroids->get(i)->width + spaceship->width * 2);
+				asteroids->get(i)->x = rand() % ((SCREEN_W / 2) - (asteroids->get(i)->width + spaceship->width)) + ((SCREEN_W / 2) + (asteroids->get(i)->width + spaceship->width));
 			}
 			
 			if (rand() % 2 == 0) {
-				asteroids->get(i)->y = rand() % (SCREEN_H / 2 - asteroids->get(i)->height - spaceship->height * 2);
+				asteroids->get(i)->y = rand() % (SCREEN_H / 2) - (asteroids->get(i)->height + spaceship->height);
 			}
 			else {
-				asteroids->get(i)->y = rand() % (SCREEN_H / 2 + asteroids->get(i)->height + spaceship->height * 2);
+				asteroids->get(i)->y = rand() % ((SCREEN_H / 2) - (asteroids->get(i)->height + spaceship->height)) + ((SCREEN_H / 2) + (asteroids->get(i)->height + spaceship->height));
 			}
 			
 			for (j = 0; j < i; j++) {
@@ -667,6 +667,19 @@ int main(void)
 		}
 	    rest(10);
     }
+    
+    // Clear Screen
+    rectfill(screen, 0, 0, WIDTH, HEIGHT, BLACK);
+    
+    // Print final score
+    textprintf_centre_ex(screen, font, WIDTH/2, HEIGHT/2, WHITE, BLACK, "Final User Score: %i", score);
+    textout_centre_ex(screen, font, "Please Press ESC to QUIT!", WIDTH/2, HEIGHT/2 + 20, WHITE, BLACK);
+    
+    rest(250);
+    
+    // Wait until user exits game
+    while(!key[KEY_ESC]) {
+	};
     
     //end program
     allegro_exit();
