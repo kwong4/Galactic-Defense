@@ -88,6 +88,19 @@ void instructions() {
 			break;
 		}
 		
+		// Background music toggle
+		if (key[KEY_LCONTROL] && key[KEY_M]) {
+			if (sound == 1) {
+				sound = 0;
+				stop_sample(background_music);
+			}
+			else {
+				sound = 1;
+				play_sample(background_music, 128, 128, 1000, TRUE);
+			}
+			rest(80);
+		}
+		
 		if (key[KEY_ESC]) {
 			allegro_exit();
 			exit(0);	
@@ -696,6 +709,7 @@ void getinput() {
 			sound = 1;
 			play_sample(background_music, 128, 128, 1000, TRUE);
 		}
+		rest(20);
 	}
     
     //ARROW KEYS AND SPACE BAR CONTROL for spaceship
@@ -1002,6 +1016,20 @@ int main(void)
     // Wait until user exits game
     while(!key[KEY_ESC]) {
 	};
+    
+    // Cleanup
+    destroy_bitmap(title);
+	destroy_bitmap(buffer);
+	destroy_bitmap(background);
+	destroy_bitmap(explosion);
+	destroy_sample(background_music);
+	destroy_sample(click_sound);
+	destroy_sample(bullet_sound);
+	destroy_sample(pulse_sound);
+	delete pulse;
+	delete spaceship;
+	delete bullets;
+	delete asteroids;
     
     //end program
     allegro_exit();
