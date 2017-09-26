@@ -1,3 +1,5 @@
+// Author: Kevin Wong
+
 #include <stdio.h>
 #include "allegro.h"
 #include "math.h"
@@ -46,9 +48,13 @@ void print_formated(const char* text, int x1, int x2, int y, int col, int bg) {
 	}
 }
 
+// Print insturction screen
 void instructions() {
+	
+	// Clear screen
 	rectfill(screen, 0, 0, WIDTH, HEIGHT, BLACK);
 	
+	// Print game info
 	textout_centre_ex(screen, font, "GAME INFO:", WIDTH/2, HEIGHT/4, WHITE, BLACK);
 	textout_ex(screen, font, "- You are tasked with the defense of the Galaxy.", WIDTH/8, HEIGHT/4 + 20, WHITE, BLACK);
 	textout_ex(screen, font, "- Your goal is to destory as much asteroids before your ship needs repairs", WIDTH/8, HEIGHT/4 + 30, WHITE, BLACK);
@@ -58,20 +64,24 @@ void instructions() {
 	textout_ex(screen, font, "- Hard gamemode will make asteroids have unpredictable movements due to magnetic", WIDTH/8, HEIGHT/4 + 80, WHITE, BLACK);
 	textout_ex(screen, font, "    properties of each asteroid", WIDTH/8, HEIGHT/4 + 90, WHITE, BLACK);
 	
+	// Print game instructions
 	textout_centre_ex(screen, font, "INSTRUCTIONS:", WIDTH/2, HEIGHT/2 + 40, WHITE, BLACK);
     textout_ex(screen, font, "1. Use the arrow keys to navigate your space ship", WIDTH/8, HEIGHT/2 + 60, WHITE, BLACK);
     textout_ex(screen, font, "   Use the UP and DOWN key to accelerate and decelerate", WIDTH/8, HEIGHT/2 + 70, YELLOW, BLACK);
     textout_ex(screen, font, "   Use the LEFT and RIGHT key to TURN", WIDTH/8, HEIGHT/2 + 80, YELLOW, BLACK);
     textout_ex(screen, font, "2. Use the SPACE bar key to shoot", WIDTH/8, HEIGHT/2 + 90, WHITE, BLACK);
-    print_formated("3. Use the 'g' key to activate a pulse that pushes all asteroids within a small area away", WIDTH/8, WIDTH - 10, HEIGHT/2 + 100, WHITE, BLACK);
+    print_formated("3. Use the 'g' key to activate a pulse that pushes all asteroids within a small area away. Make sure not to activate before asteroid is too close.", WIDTH/8, WIDTH - 10, HEIGHT/2 + 100, WHITE, BLACK);
     textout_ex(screen, font, "4. Press Ctrl + h to bring up the instructions at any time!", WIDTH/8, HEIGHT/2 + 120, WHITE, BLACK);
-    textout_ex(screen, font, "5. Press Ctrl + m to toggle the background music at any time!", WIDTH/8, HEIGHT/2 + 120, WHITE, BLACK);
-    textout_ex(screen, font, "4. Press Esc to exit the game!", WIDTH/8, HEIGHT/2 + 120, WHITE, BLACK);
+    textout_ex(screen, font, "5. Press Ctrl + m to toggle the background music at any time!", WIDTH/8, HEIGHT/2 + 130, WHITE, BLACK);
+    textout_ex(screen, font, "6. Press Esc to exit the game!", WIDTH/8, HEIGHT/2 + 140, WHITE, BLACK);
     
+    // ENTER to return
     textout_centre_ex(screen, font, "Press ENTER to return", WIDTH/2, HEIGHT/2 + 200, WHITE, BLACK);
     
+    // Slow down game
     rest(250);
     
+    // Check input from user
     while(1) {
     	if (key[KEY_ENTER]) {
     		play_sample(click_sound, 128, 128, 1000, FALSE);
@@ -85,6 +95,7 @@ void instructions() {
     }
 }
 
+// Get Game menu input
 int getmenuinput() {
 	
 	// If user quits game
@@ -94,6 +105,7 @@ int getmenuinput() {
 	}
 	
 	// Move cursor for selection
+	// Play sound for each movement
 	if (key[KEY_DOWN] && selection != max_selection) {
 		play_sample(click_sound, 128, 128, 1000, FALSE);
 		rectfill(screen, WIDTH/3 + 1, HEIGHT/2 + selection * 15 + 81, WIDTH/3 + 9, HEIGHT/2 + selection * 15 + 89, BLACK);
@@ -112,9 +124,13 @@ int getmenuinput() {
 	}
 }
 
+// Print the welcome screen menu
 void welcome_screen() {
+	
+	// Blit the title
 	blit(title, screen, 0, 0, 150, 50, title->w, title->h);
 	
+	// Options and insturctions
     textout_centre_ex(screen, font, "Press use your ARROW KEYS and ENTER to select an option!", WIDTH/2, HEIGHT/2 + 40, WHITE, BLACK);
     rect(screen, WIDTH/3, HEIGHT/2 + 80 , WIDTH/3 + 10, HEIGHT/2 + 90, WHITE);
     textout_ex(screen, font, "Start!", WIDTH/3 + 25, HEIGHT/2 + 82, WHITE, BLACK);
@@ -125,6 +141,7 @@ void welcome_screen() {
     selection = 0;
     rectfill(screen, WIDTH/3 + 1, HEIGHT/2 + 81, WIDTH/3 + 9, HEIGHT/2 + 89, WHITE);
     
+    // Check if user selects Hard or Easy mode
     if (hardmode == 0) {
     	textout_ex(screen, font, "Easy", WIDTH/3 + 100, HEIGHT/2 + 112, YELLOW, BLACK);
     }
@@ -136,8 +153,10 @@ void welcome_screen() {
 // Draw initial start screen instructions
 void draw_startscreen() {
     
+    // Run welcome screen print
     welcome_screen();
     
+    // Check for user input and update for user selection
     while (1) {
     	if (getmenuinput() == -1) {
     		if (selection == 0) {
@@ -158,6 +177,8 @@ void draw_startscreen() {
 			    }
     		}
     	}
+    	
+    	// Slow game down
 	    rest(100);
     }
 }
@@ -172,8 +193,9 @@ double calcAngleMoveY(int angle) {
     return (double) sin(angle * PI / 180);
 }
 
-void warpsprite(sprite *spr)
-{
+// Warp sprite if reaches end of screen
+void warpsprite(sprite *spr) {
+	
     //simple screen warping behavior
     int w = spr->width;
     int h = spr->height;
@@ -197,54 +219,61 @@ void warpsprite(sprite *spr)
     {
         spr->y = 0-h;
     }
-
 }
 
+// Respawn asteroid if destoryed
 void restart_asteroid(int num) {
 	
+	// Loop variables
 	int collide;
 	int i;
 	
+	// Check if respawn collides with other asteroids. If so, reposition
 	while (1) {
-			collide = 0;
-			
+		
+		// Restart colision
+		collide = 0;
+		
+		// Randomize placement
+		if (rand() % 2 == 0) {
 			if (rand() % 2 == 0) {
-				if (rand() % 2 == 0) {
-					asteroids->get(num)->x = 0;
-					asteroids->get(num)->y = rand() % (SCREEN_H - asteroids->get(num)->height);
-				}
-				else {
-					asteroids->get(num)->x = SCREEN_W - asteroids->get(num)->width;
-					asteroids->get(num)->y = rand() % (SCREEN_H - asteroids->get(num)->height);
-				}
+				asteroids->get(num)->x = 0;
+				asteroids->get(num)->y = rand() % (SCREEN_H - asteroids->get(num)->height);
 			}
 			else {
-				if (rand() % 2 == 0) {
-					asteroids->get(num)->x = rand() % (SCREEN_W - asteroids->get(num)->width);
-					asteroids->get(num)->y = 0;
-				}
-				else {
-					asteroids->get(num)->x = rand() % (SCREEN_W - asteroids->get(num)->width);
-					asteroids->get(num)->y = SCREEN_H - asteroids->get(num)->height;
-				}
+				asteroids->get(num)->x = SCREEN_W - asteroids->get(num)->width;
+				asteroids->get(num)->y = rand() % (SCREEN_H - asteroids->get(num)->height);
 			}
-			
-			for (i = 0; i < ASTEROID_COUNT; i++) {
-				if (i != num && asteroids->get(i)->collided(asteroids->get(num))) {
-        			collide = 1;
-					break;	
-        		}
+		}
+		else {
+			if (rand() % 2 == 0) {
+				asteroids->get(num)->x = rand() % (SCREEN_W - asteroids->get(num)->width);
+				asteroids->get(num)->y = 0;
 			}
-			
-			if (collide == 0) {
-				break;
+			else {
+				asteroids->get(num)->x = rand() % (SCREEN_W - asteroids->get(num)->width);
+				asteroids->get(num)->y = SCREEN_H - asteroids->get(num)->height;
 			}
 		}
 		
+		// Check if collides with other sprites
+		for (i = 0; i < ASTEROID_COUNT; i++) {
+			if (i != num && asteroids->get(i)->collided(asteroids->get(num))) {
+    			collide = 1;
+				break;	
+    		}
+		}
+		if (collide == 0) {
+			break;
+		}
+	}
+		
+	// Randomize speed and set to alive
 	asteroids->get(num)->velx = (rand() % 12) - 6;
 	asteroids->get(num)->vely = (rand() % 12) - 6;
 	asteroids->get(num)->alive = 1;	
 	
+	// Set health
 	if (num >= SMALLASTEROID_COUNT) {
 		asteroids->get(num)->health = 3;
 	}
@@ -254,13 +283,18 @@ void restart_asteroid(int num) {
 	
 }
 
-void checkcollisions_asteroid(int num)
-{
+// Check collisions with other asteroids. Only in hard mode
+void checkcollisions_asteroid(int num) {
+	
+	// Loop and position variables
     int cx1,cy1,cx2,cy2;
     int i;
 
+	// Loop through all asteroids
     for (i=0; i<ASTEROID_COUNT; i++)
     {
+    	
+    	// Check if current asteroid collided with others
         if (i != num && asteroids->get(i)->collided(asteroids->get(num)))
         {
         	
@@ -275,6 +309,8 @@ void checkcollisions_asteroid(int num)
             //figure out which way the sprites collided
             if (cx1 <= cx2)
             {
+            	
+            	// Randomize in opposite directions
                 asteroids->get(i)->velx = -1 * (rand() % 6) - 1;
                 asteroids->get(num)->velx = rand() % 6 + 1;
                 if (cy1 <= cy2)
@@ -308,37 +344,54 @@ void checkcollisions_asteroid(int num)
     }
 }
 
-void checkcollisions_bullet(int num)
-{
+// Check if bullet collided with any asteroids
+void checkcollisions_bullet(int num) {
+	
+	// Loop variable
     int i;
 
+	// Cycle through all of the asteroids
     for (i=0; i<ASTEROID_COUNT; i++)
     {
+    	
+    	// Check if bullet collided with asteroid
         if (bullets->get(num)->collided(asteroids->get(i)))
         {
+        	
+        	// Minus asteroid health
         	asteroids->get(i)->health--;
         	
+        	// Check if asteroid is destoryed.
         	if (asteroids->get(i)->health == 0) {
         		draw_sprite(buffer, explosion, bullets->get(num)->x, bullets->get(num)->y);
         		score += 100;
         		asteroids->get(i)->alive = 0;
         	}
         	
+        	// Set bullet to dead
         	bullets->get(num)->alive = 0;
         	break;
         }
     }
 }
 
+// Check collisions with ship
 void checkcollisions_ship() {
 	
+	// Loop variable
 	int i;
 	
+	// Check if pulse is active (no injury)
 	if (active_pulse == 0) {
+		
+		// Cycle through all asteroids
 		for (i=0; i<ASTEROID_COUNT; i++)
 	    {
+	    	
+	    	// Check if collided with asteroid
 	        if (spaceship->collided(asteroids->get(i)))
 	        {
+	        	// Subtract health, destory asteroid and check if game over
 	        	spaceship->health -= 1;
 	        	asteroids->get(i)->alive = 0;
 	        	if (spaceship->health == 0) {
@@ -350,15 +403,20 @@ void checkcollisions_ship() {
 	}
 }
 
+// Active pulse feature
 void activate_pulse() {
 	
+	// Loop variable
 	int i;
 	
+	// Set pulse to where the ship is
 	pulse->x = spaceship->x + spaceship->width/2 - pulse->image->w/2;
 	pulse->y = spaceship->y + spaceship->height/2 - pulse->image->h/2;
 	
+	// Draw the pulse
 	draw_sprite(buffer, pulse->image, pulse->x, pulse->y);
 
+	// Cycle through all of the asteroids. If collides, send in opposite direction
     for (i=0; i<ASTEROID_COUNT; i++)
     {
         if (pulse->collided(asteroids->get(i), 0)) {
@@ -374,10 +432,11 @@ void activate_pulse() {
     }
 }
 
-void thrusters(int dir)
-{
+// Used to move ship forward or backwards
+void thrusters(int dir) {
     //shift 0-degree orientation from right-face to up-face
 	spaceship->moveAngle = spaceship->faceAngle - 90;
+	
     //convert negative angle to wraparound
 	if (spaceship->moveAngle < 0) spaceship->moveAngle = 359 + spaceship->moveAngle;
 
@@ -409,25 +468,31 @@ void thrusters(int dir)
 	}
 }
 
-void turnleft()
-{
+// Turn ship left
+void turnleft() {
+	// Alter angle
     spaceship->faceAngle -= STEP;
 	if (spaceship->faceAngle < 0) {
 		spaceship->faceAngle = 359;
 	}
 }
 
-void turnright()
-{
+// Turn ship right
+void turnright() {
+	// Alter angle
     spaceship->faceAngle += STEP;
 	if (spaceship->faceAngle > 359) {
 		spaceship->faceAngle = 0;
 	}
 }
 
-void fireweapon()
-{
+// Fire weapon
+void fireweapon() {
+	
+	// Play sound
 	play_sample(bullet_sound, 128, 128, 1000, FALSE);
+	
+	// Set bullet position and angle
     bullets->get(bullet_index)->x = spaceship->pointer_x - (bullets->get(bullet_index)->width / 2);
     bullets->get(bullet_index)->y = spaceship->pointer_y - (bullets->get(bullet_index)->height / 2);
     bullets->get(bullet_index)->faceAngle = spaceship->faceAngle;
@@ -439,25 +504,30 @@ void fireweapon()
 	if (bullets->get(bullet_index)->moveAngle < 0) {
 		bullets->get(bullet_index)->moveAngle = 359 + bullets->get(bullet_index)->moveAngle;
 	}
+	
+	// Calculate velocity and set alive
     bullets->get(bullet_index)->velx = calcAngleMoveX(bullets->get(bullet_index)->moveAngle) * BULLETSPEED;
     bullets->get(bullet_index)->vely = calcAngleMoveY(bullets->get(bullet_index)->moveAngle) * BULLETSPEED;
 	bullets->get(bullet_index)->alive = 1;
 	
+	// Cycle bullets
 	bullet_index++;
-	
 	if (bullet_index > BULLET_CAP - 1) {
 		bullet_index = 0;
 	}
+	
+	// Set cooldown
 	bullet_cooldown = BULLETCOOLDOWN;
 }
 
-void updatebullet(int num)
-{
+// Update bullet
+void updatebullet(int num) {
+	
+	// Temp position variables
     int x, y, tx, ty;
 		
 	//move the bullet
 	bullets->get(num)->updatePosition();
-	
     x = bullets->get(num)->x;
     y = bullets->get(num)->y;
 
@@ -471,21 +541,17 @@ void updatebullet(int num)
     // Check if collide with asteroid
     checkcollisions_bullet(num);
     
-    // Else draw it
+    // Draw bullet if alive
     if (bullets->get(num)->alive) {
     	rotate_sprite(buffer, bullets->get(num)->image, (int)bullets->get(num)->x, bullets->get(num)->y, 
-		itofix((int)(bullets->get(num)->faceAngle / 0.7f / 2.0f)));
+			itofix((int)(bullets->get(num)->faceAngle / 0.7f / 2.0f)));
     }
 }
 
-void updateasteroid(int num)
-{
-		
-    //rotate_sprite(buffer, asteroids->get(num)->image, (int)asteroids->get(num)->x, asteroids->get(num)->y, 
-	//	itofix((int)(asteroids->get(num)->faceAngle / 0.7f / 2.0f)));
-		
-	// draw it
+// Update asteroid
+void updateasteroid(int num) {
 	
+	// Draw correct sprite based on health and index
 	if (asteroids->get(num)->health == 3 || num < SMALLASTEROID_COUNT) {
 		draw_sprite(buffer, asteroids->get(num)->image, (int)asteroids->get(num)->x, asteroids->get(num)->y);
 	}
@@ -499,18 +565,24 @@ void updateasteroid(int num)
 	//move the asteroid
 	asteroids->get(num)->updatePosition();
 		
+	// Check if hardmode for collision is active
 	if (hardmode == 1) {
 		checkcollisions_asteroid(num);
 	}
 	
+	// Warp asteroid
 	warpsprite(asteroids->get(num));
 }
 
+// Update health bar
 void updatehealth() {
+	
+	// Health outline
 	rect(buffer, 60, 2, 90, 14, RED); 
 	rect(buffer, 90, 2, 120, 14, RED); 
 	rect(buffer, 120, 2, 150, 14, RED); 
 	
+	// Health filler
 	if (spaceship->health > 0) {
 		rectfill(buffer, 62, 4, 88, 12, RED);
 	}
@@ -524,25 +596,31 @@ void updatehealth() {
 	}
 }
 
+// Update pulse cooldown bar
 void updatepulse() {
+	
+	// Actively refill based on cooldown
 	rect(buffer, WIDTH/2 - 75, 2, WIDTH/2 + 75, 14, BLUE);
 	rectfill(buffer, WIDTH/2 - 73, 4, WIDTH/2 + 73 - (pulse_cooldown) * 1.46, 12, BLUE);
 }
 
-void update()
-{
+// Main update function
+void update() {
+	
 	//Loop variable
 	int i;
 	
 	//Clear background
 	blit(background, buffer, 0, 0, 0, 0, WIDTH, HEIGHT);
 	
+	// Update bulelt if alive
 	for (i = 0; i < BULLET_CAP; i++) {
     	if (bullets->get(i)->alive == 1) {
     		updatebullet(i);
 		}
     }
         
+    // Update asteroid is alive, else respawn it
     for (i = 0; i < ASTEROID_COUNT; i++) {
     	if (asteroids->get(i)->alive == 1) {
     		updateasteroid(i);
@@ -552,21 +630,23 @@ void update()
     	}
     }
     
+    // Status bar
     rectfill(buffer, 0, 0, WIDTH, 16, BLACK); 
-    
     textout_ex(buffer, font, "Health:", 1, 4, WHITE, BLACK);
     textout_ex(buffer, font, "Pulse:", WIDTH/2 - 125, 4, WHITE, BLACK);
     textprintf_centre_ex(buffer, font, WIDTH - 50, 4, WHITE, BLACK, "Score: %i", score);
     
+    // Update health and pulse bars
     updatehealth();
-    
     updatepulse();
         
+    // Check collisions with spaceship
     checkcollisions_ship();
         
     //move the spaceship
 	spaceship->updatePosition();
 	
+	// Update blaster of ship
 	spaceship->pointer_x = spaceship->x + spaceship->width / 2 + calcAngleMoveX(spaceship->faceAngle - 90) * (spaceship->height / 2);
 	spaceship->pointer_y = spaceship->y + spaceship->height / 2 + calcAngleMoveY(spaceship->faceAngle - 90) * (spaceship->height / 2);
 	
@@ -575,6 +655,7 @@ void update()
 	rotate_sprite(buffer, spaceship->image, (int)spaceship->x, (int)spaceship->y, 
         itofix((int)(spaceship->faceAngle / 0.7f / 2.0f)));
         
+    // Update pulse variables
     if (active_pulse == 0) {
     	pulse->alive = 0;
     }
@@ -583,24 +664,29 @@ void update()
     	active_pulse--;	
     }
     
+    // Pulse cooldown countdown
     if (pulse_cooldown != 0) {
     	pulse_cooldown--;	
     }
 	
+	// Warp spaceship
     warpsprite(spaceship);
 }
 
-void getinput()
-{
+// Get game input from user
+void getinput() {
+	
     //hit ESC to quit
     if (key[KEY_ESC]) {
 		gameover = 1;
 	}
 	
+	// Instruction screen
 	if (key[KEY_LCONTROL] && key[KEY_H]) {
 		instructions();
 	}
 	
+	// Background music toggle
 	if (key[KEY_LCONTROL] && key[KEY_M]) {
 		if (sound == 1) {
 			sound = 0;
@@ -612,7 +698,7 @@ void getinput()
 		}
 	}
     
-    //ARROW KEYS AND SPACE BAR CONTROL
+    //ARROW KEYS AND SPACE BAR CONTROL for spaceship
     if (key[KEY_UP]) {  
 		thrusters(1);
 	}
@@ -635,6 +721,7 @@ void getinput()
     	}
 	}
 	
+	// Pulse active
 	if (key[KEY_G]) {
 		if (pulse_cooldown == 0) {
 			play_sample(pulse_sound, 128, 128, 1000, FALSE);
@@ -647,8 +734,10 @@ void getinput()
     rest(20);
 }
 
-void setupscreen()
-{
+// Setup initial files
+void setupscreen() {
+	
+	// Error variable
     int ret;
 	
     //set video mode    
@@ -666,6 +755,7 @@ void setupscreen()
 		return;
 	}
 	
+	// Load sound files
 	background_music = load_sample(BACKGROUND_SOUND);
 	click_sound = load_sample(CLICK_SOUND);
 	bullet_sound = load_sample(BULLET_SOUND);
@@ -683,11 +773,13 @@ void setupscreen()
     	return;
     }
 	
+	// Draw start screen
 	draw_startscreen();
 }
 
-void setupgame()
-{
+// Setup game
+void setupgame() {
+	
 	//Loop variable
 	int i;	
 	int j;
@@ -712,6 +804,7 @@ void setupgame()
 		return;
 	}
 	
+	// Set spaceship variables
     spaceship->width = spaceship->image->w;
     spaceship->height = spaceship->image->h;
     spaceship->health = 3;
@@ -722,6 +815,7 @@ void setupgame()
 	spaceship->moveAngle = 0;
 	spaceship->faceAngle = 0;
 	
+	// Set pulse variables
 	pulse = new sprite();
 	if (!pulse->load(PULSE)) {
 		allegro_message("Error loading sprites");
@@ -734,6 +828,7 @@ void setupgame()
 	pulse->y = 0;
 	pulse->alive = 0;
 	
+	// Set bullet variables
 	bullets = new spritehandler();
 	
 	for (i = 0; i < BULLET_CAP; i++) {
@@ -747,7 +842,10 @@ void setupgame()
 		bullets->get(i)->y = 0;
 	}
 	
+	// Set asteroid variables
 	asteroids = new spritehandler();
+	
+	// Small asteroids
 	for (i = 0; i < SMALLASTEROID_COUNT; i++) {
 		asteroids->create();
 		asteroids->get(i)->load(SMALL_ASTEROID_SPRITE);
@@ -757,6 +855,8 @@ void setupgame()
 		asteroids->get(i)->xdelay = 1;
 		asteroids->get(i)->ydelay = 1;
 		asteroids->get(i)->alive = 1;
+		
+		// Check if initial spawn collides with other asteroids. If so, reposition
 		while (1) {
 			collide = 0;
 			
@@ -786,11 +886,14 @@ void setupgame()
 			}
 		}
 		
+		// Randomize velocity
 		asteroids->get(i)->velx = (rand() % 12) - 6;
 		asteroids->get(i)->vely = (rand() % 12) - 6;
 	}
 	
+	// Large asteroids
 	for (i = SMALLASTEROID_COUNT; i < ASTEROID_COUNT; i++) {
+		
 		asteroids->create();
 		asteroids->get(i)->load(LARGE_ASTEROID_SPRITE);
 		asteroids->get(i)->load2(LARGE_ASTEROID_SPRITE2);
@@ -801,6 +904,8 @@ void setupgame()
 		asteroids->get(i)->xdelay = 1;
 		asteroids->get(i)->ydelay = 1;
 		asteroids->get(i)->alive = 1;
+		
+		// Check if initial spawn collides with other asteroids. If so, reposition
 		while (1) {
 			collide = 0;
 			
@@ -830,6 +935,7 @@ void setupgame()
 			}
 		}
 		
+		// Randomize velocity
 		asteroids->get(i)->velx = calcAngleMoveX(asteroids->get(i)->moveAngle) * ((rand() % (ASTEROID_SPEED - 1)) + 1);
 		asteroids->get(i)->vely = calcAngleMoveY(asteroids->get(i)->moveAngle) * ((rand() % (ASTEROID_SPEED - 1)) + 1);
 	}
@@ -849,23 +955,16 @@ int main(void)
     //initialize random seed
     srand(time(NULL));
     
+    // Setup screen
     setupscreen();
-    
-    while(1) {
-    	if (key[KEY_ENTER]) {
-    		break;
-    	}
-    	else if (key[KEY_ESC]) {
-    		allegro_exit();
-    		exit(0);
-    	}
-	};
 	
+	// Setup game
 	setupgame();
 	
 	// Clear Screen
     rectfill(screen, 0, 0, WIDTH, HEIGHT, BLACK);
     
+    // Game loop
     while(!gameover) {
     	
     	//refresh the screen
@@ -878,10 +977,15 @@ int main(void)
             getinput();
 		}
 		
+		// Update game
 		update();
+		
+		// Bullet cooldown timer
 		if (bullet_cooldown > 0) {
 			bullet_cooldown--;	
 		}
+		
+		// Slow down game
 	    rest(10);
     }
     
@@ -892,6 +996,7 @@ int main(void)
     textprintf_centre_ex(screen, font, WIDTH/2, HEIGHT/2, WHITE, BLACK, "Final User Score: %i", score);
     textout_centre_ex(screen, font, "Please Press ESC to QUIT!", WIDTH/2, HEIGHT/2 + 20, WHITE, BLACK);
     
+    // Slow down game
     rest(250);
     
     // Wait until user exits game
