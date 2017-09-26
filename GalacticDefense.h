@@ -11,6 +11,7 @@
 #define YELLOW makecol(255,216,0)
 #define RED makecol(255,0,0)
 #define ORANGE makecol(255,127.5,0)
+#define BLUE makecol(0,191,255)
 
 #define PI 3.1415926535
 #define ACCELERATION 0.1f
@@ -36,8 +37,15 @@
 #define LARGE_ASTEROID_SPRITE "sprites/Asteroid20.bmp"
 #define LARGE_ASTEROID_SPRITE2 "sprites/Asteroid21.bmp"
 #define LARGE_ASTEROID_SPRITE3 "sprites/Asteroid22.bmp"
+#define BACKGROUND_SOUND "sounds/background.wav"
+#define CLICK_SOUND "sounds/click.wav"
+#define BULLET_SOUND "sounds/bullet.wav"
+#define PULSE_SOUND "sounds/pulse.wav"
 #define EXPLOSION "sprites/Explosion.bmp"
 #define GALATICDEFENSE "sprites/GalaticDefense.bmp"
+#define PULSE "sprites/Pulse.bmp"
+#define PULSE_DURATION 10
+#define PULSE_COOLDOWN 100
 
 // Gameover variable
 int gameover = 0;
@@ -47,12 +55,20 @@ int score = 0;
 int hardmode = 0;
 int selection = 0;
 int max_selection = 2;
+int active_pulse = 0;
+int pulse_cooldown = 0;
+int sound = 1;
 
 //create a back buffer
 BITMAP *title;
 BITMAP *buffer;
 BITMAP *background;
 BITMAP *explosion;
+SAMPLE *background_music;
+SAMPLE *click_sound;
+SAMPLE *bullet_sound;
+SAMPLE *pulse_sound;
+sprite *pulse;
 sprite *spaceship;
 spritehandler *bullets;
 spritehandler *asteroids;

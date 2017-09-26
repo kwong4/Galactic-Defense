@@ -64,6 +64,8 @@ void instructions() {
     textout_ex(screen, font, "   Use the LEFT and RIGHT key to TURN", WIDTH/8, HEIGHT/2 + 80, YELLOW, BLACK);
     textout_ex(screen, font, "2. Use the SPACE bar key to shoot", WIDTH/8, HEIGHT/2 + 90, WHITE, BLACK);
     print_formated("3. Use the 'g' key to activate a pulse that pushes all asteroids within a small area away", WIDTH/8, WIDTH - 10, HEIGHT/2 + 100, WHITE, BLACK);
+    textout_ex(screen, font, "4. Press Ctrl + h to bring up the instructions at any time!", WIDTH/8, HEIGHT/2 + 120, WHITE, BLACK);
+    textout_ex(screen, font, "5. Press Ctrl + m to toggle the background music at any time!", WIDTH/8, HEIGHT/2 + 120, WHITE, BLACK);
     textout_ex(screen, font, "4. Press Esc to exit the game!", WIDTH/8, HEIGHT/2 + 120, WHITE, BLACK);
     
     textout_centre_ex(screen, font, "Press ENTER to return", WIDTH/2, HEIGHT/2 + 200, WHITE, BLACK);
@@ -72,6 +74,7 @@ void instructions() {
     
     while(1) {
     	if (key[KEY_ENTER]) {
+    		play_sample(click_sound, 128, 128, 1000, FALSE);
 			break;
 		}
 		
@@ -92,16 +95,19 @@ int getmenuinput() {
 	
 	// Move cursor for selection
 	if (key[KEY_DOWN] && selection != max_selection) {
+		play_sample(click_sound, 128, 128, 1000, FALSE);
 		rectfill(screen, WIDTH/3 + 1, HEIGHT/2 + selection * 15 + 81, WIDTH/3 + 9, HEIGHT/2 + selection * 15 + 89, BLACK);
 		selection++;
 		rectfill(screen, WIDTH/3 + 1, HEIGHT/2 +  selection * 15 + 81, WIDTH/3 + 9, HEIGHT/2 + selection * 15 + 89, WHITE);
 	}
 	else if (key[KEY_UP] && selection != 0) {
+		play_sample(click_sound, 128, 128, 1000, FALSE);
 		rectfill(screen, WIDTH/3 + 1, HEIGHT/2 + selection * 15 + 81, WIDTH/3 + 9, HEIGHT/2 +  selection * 15 + 89, BLACK);
 		selection--;
 		rectfill(screen, WIDTH/3 + 1, HEIGHT/2 + selection * 15 + 81, WIDTH/3 + 9, HEIGHT/2 + selection * 15 + 89, WHITE);
 	}
 	else if (key[KEY_ENTER]) {
+		play_sample(click_sound, 128, 128, 1000, FALSE);
 		return -1;
 	}
 }
@@ -327,19 +333,45 @@ void checkcollisions_bullet(int num)
 void checkcollisions_ship() {
 	
 	int i;
+	
+	if (active_pulse == 0) {
+		for (i=0; i<ASTEROID_COUNT; i++)
+	    {
+	        if (spaceship->collided(asteroids->get(i)))
+	        {
+	        	spaceship->health -= 1;
+	        	asteroids->get(i)->alive = 0;
+	        	if (spaceship->health == 0) {
+	        		spaceship->alive = 0;
+	        		gameover = 1;
+	        	}
+	        }
+	    }	
+	}
+}
+
+void activate_pulse() {
+	
+	int i;
+	
+	pulse->x = spaceship->x + spaceship->width/2 - pulse->image->w/2;
+	pulse->y = spaceship->y + spaceship->height/2 - pulse->image->h/2;
+	
+	draw_sprite(buffer, pulse->image, pulse->x, pulse->y);
 
     for (i=0; i<ASTEROID_COUNT; i++)
     {
-        if (spaceship->collided(asteroids->get(i)))
-        {
-        	spaceship->health -= 1;
-        	asteroids->get(i)->alive = 0;
-        	if (spaceship->health == 0) {
-        		spaceship->alive = 0;
-        		gameover = 1;
-        	}
+        if (pulse->collided(asteroids->get(i), 0)) {
+        	asteroids->get(i)->velx = asteroids->get(i)->velx * -1;
+        	asteroids->get(i)->vely = asteroids->get(i)->vely * -1;
+        	asteroids->get(i)->updatePosition();
+        	asteroids->get(i)->updatePosition();
+        	asteroids->get(i)->updatePosition();
+        	asteroids->get(i)->updatePosition();
+        	asteroids->get(i)->updatePosition();
+        	asteroids->get(i)->updatePosition();
         }
-    }	
+    }
 }
 
 void thrusters(int dir)
@@ -395,6 +427,7 @@ void turnright()
 
 void fireweapon()
 {
+	play_sample(bullet_sound, 128, 128, 1000, FALSE);
     bullets->get(bullet_index)->x = spaceship->pointer_x - (bullets->get(bullet_index)->width / 2);
     bullets->get(bullet_index)->y = spaceship->pointer_y - (bullets->get(bullet_index)->height / 2);
     bullets->get(bullet_index)->faceAngle = spaceship->faceAngle;
@@ -491,6 +524,11 @@ void updatehealth() {
 	}
 }
 
+void updatepulse() {
+	rect(buffer, WIDTH/2 - 75, 2, WIDTH/2 + 75, 14, BLUE);
+	rectfill(buffer, WIDTH/2 - 73, 4, WIDTH/2 + 73 - (pulse_cooldown) * 1.46, 12, BLUE);
+}
+
 void update()
 {
 	//Loop variable
@@ -517,9 +555,12 @@ void update()
     rectfill(buffer, 0, 0, WIDTH, 16, BLACK); 
     
     textout_ex(buffer, font, "Health:", 1, 4, WHITE, BLACK);
-    textprintf_centre_ex(buffer, font, WIDTH/2, 4, WHITE, BLACK, "Score: %i", score);
+    textout_ex(buffer, font, "Pulse:", WIDTH/2 - 125, 4, WHITE, BLACK);
+    textprintf_centre_ex(buffer, font, WIDTH - 50, 4, WHITE, BLACK, "Score: %i", score);
     
     updatehealth();
+    
+    updatepulse();
         
     checkcollisions_ship();
         
@@ -533,6 +574,18 @@ void update()
     //(256 / 360 = 0.7), then divide by 2 radians
 	rotate_sprite(buffer, spaceship->image, (int)spaceship->x, (int)spaceship->y, 
         itofix((int)(spaceship->faceAngle / 0.7f / 2.0f)));
+        
+    if (active_pulse == 0) {
+    	pulse->alive = 0;
+    }
+    else {
+    	activate_pulse();
+    	active_pulse--;	
+    }
+    
+    if (pulse_cooldown != 0) {
+    	pulse_cooldown--;	
+    }
 	
     warpsprite(spaceship);
 }
@@ -546,6 +599,17 @@ void getinput()
 	
 	if (key[KEY_LCONTROL] && key[KEY_H]) {
 		instructions();
+	}
+	
+	if (key[KEY_LCONTROL] && key[KEY_M]) {
+		if (sound == 1) {
+			sound = 0;
+			stop_sample(background_music);
+		}
+		else {
+			sound = 1;
+			play_sample(background_music, 128, 128, 1000, TRUE);
+		}
 	}
     
     //ARROW KEYS AND SPACE BAR CONTROL
@@ -569,6 +633,14 @@ void getinput()
     	if (bullet_cooldown == 0) {
     		fireweapon();
     	}
+	}
+	
+	if (key[KEY_G]) {
+		if (pulse_cooldown == 0) {
+			play_sample(pulse_sound, 128, 128, 1000, FALSE);
+			active_pulse = PULSE_DURATION;	
+			pulse_cooldown = PULSE_COOLDOWN;
+		}	
 	}
 
     //short delay after keypress        
@@ -594,6 +666,23 @@ void setupscreen()
 		return;
 	}
 	
+	background_music = load_sample(BACKGROUND_SOUND);
+	click_sound = load_sample(CLICK_SOUND);
+	bullet_sound = load_sample(BULLET_SOUND);
+	pulse_sound = load_sample(PULSE_SOUND);
+	
+	//install a digital sound driver
+    if (install_sound(DIGI_AUTODETECT, MIDI_NONE, "") != 0) {
+    	allegro_message("Error initalizing sound system");
+		return;	
+    }
+    
+    // Check if sound files loaded
+    if (!background_music || !click_sound || !bullet_sound || !pulse_sound) {
+    	allegro_message("Error reading wave files");
+    	return;
+    }
+	
 	draw_startscreen();
 }
 
@@ -604,13 +693,16 @@ void setupgame()
 	int j;
 	int collide;
 
+	//Play background music
+	play_sample(background_music, 128, 128, 1000, TRUE);
+
 	//Create a back buffer
 	buffer = create_bitmap(WIDTH,HEIGHT);
 	
 	//load background buffer
 	background = load_bitmap(BACKGROUND_SPRITE, NULL);
 	
-	//load explosion buffer
+	//load explosion bitmap
 	explosion = load_bitmap(EXPLOSION, NULL);
 	
 	//Create a spaceship sprite
@@ -629,6 +721,18 @@ void setupgame()
     spaceship->y = SCREEN_H / 2 - spaceship->height/2;
 	spaceship->moveAngle = 0;
 	spaceship->faceAngle = 0;
+	
+	pulse = new sprite();
+	if (!pulse->load(PULSE)) {
+		allegro_message("Error loading sprites");
+		return;
+	}
+	
+	pulse->width = pulse->image->w + 20;
+	pulse->height = pulse->image->h + 20;
+	pulse->x = 0;
+	pulse->y = 0;
+	pulse->alive = 0;
 	
 	bullets = new spritehandler();
 	
